@@ -21,6 +21,6 @@ public class ServerChannelHandler extends ChannelInboundHandlerAdapter {
         System.out.println("收到客户端发过来的消息:" + in.toString(StandardCharsets.UTF_8));
 
         //写入并发送信息到远端（客户端）
-        ctx.channel().writeAndFlush(Unpooled.copiedBuffer("你好,我是服务端,我己经收到你发送的消息", CharsetUtil.UTF_8));
+        ctx.channel().writeAndFlush(Unpooled.copiedBuffer("你好, 我是 server,我己经收到你发送的消息", CharsetUtil.UTF_8));
     }
 }

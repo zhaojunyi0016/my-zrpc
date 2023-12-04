@@ -8,6 +8,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
@@ -17,7 +18,9 @@ import java.nio.charset.StandardCharsets;
  * @Author : Williams
  * Date : 2023/11/23 18:12
  */
-public class AppClient {
+public class AppClient implements Serializable {
+
+    private static final long serialVersionUID = -3351492880977440034L;
 
     public void run() {
         // 定义线程池 eventLoopGroup

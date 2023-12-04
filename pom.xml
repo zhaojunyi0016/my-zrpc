@@ -9,7 +9,11 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>netty-demo</module>
+        <module>demo</module>
+        <module>rpc-framework</module>
+        <module>rpc-framework/common</module>
+        <module>rpc-framework/core</module>
+        <module>monitoring-center</module>
     </modules>
 
 
@@ -20,10 +24,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netty.version>4.1.89.Final</netty.version>
         <junit.version>4.13.2</junit.version>
+        <junit.version>4.13.2</junit.version>
+        <commons-Lang3.version>3.12.0</commons-Lang3.version>
+        <fastjson2.version>2.0.34</fastjson2.version>
+        <logback.version>1.4.8</logback.version>
+        <lombok.version>1.18.26</lombok.version>
     </properties>
 
     <dependencies>
-
     </dependencies>
 
     <!-- 父工程统一版本管理,并不会下载 只有dependencies的才会下载-->
@@ -39,13 +47,31 @@
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>org.apache.zookeeper</groupId>-->
-<!--                <artifactId>zookeeper</artifactId>-->
-<!--                <version>${zookeeper.version}</version>-->
-<!--            </dependency>-->
+            <!--日志打印-->
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <!--fastjson-->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2.version}</version>
+            </dependency>
+            <!--Lang3-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-Lang3</artifactId>
+                <version>${commons-Lang3.version}</version>
+            </dependency>
+            <!--lombok-->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
         </dependencies>
-
     </dependencyManagement>
 
 </project>

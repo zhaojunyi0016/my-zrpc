@@ -5,34 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.my.rpc</groupId>
-        <artifactId>my-zrpc</artifactId>
+        <artifactId>demo</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>netty-demo</artifactId>
-
+    <artifactId>api-demo</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.8.3</version>
-        </dependency>
-    </dependencies>
 
 </project>

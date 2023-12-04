@@ -1,0 +1,20 @@
+# Editor directories and files
+.settings/
+.classpath
+.project
+.DS_Store
+.idea/
+*.iml
+.vscode
+
+# temporary files
+~$*
+*.bak
+
+# java & maven
+target/
+bin/
+hs_err_pid*
+*.log
+.flattened-pom.xml
+logs/

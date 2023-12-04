@@ -34,7 +34,7 @@ public class ZookeeperTest {
     @Test
     public void testCreatePNode() {
         try {
-            String result = zooKeeper.create("/ydlclass", "hello".getBytes(),
+            String result = zooKeeper.create("/myrpc", "hello".getBytes(),
                     ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             System.out.println("result = " + result);
         } catch (KeeperException | InterruptedException e) {
@@ -54,7 +54,7 @@ public class ZookeeperTest {
     public void testDeletePNode() {
         try {
             // version: cas mysql 乐观锁， 也可以无视版本号 -1
-            zooKeeper.delete("/ydlclass", -1);
+            zooKeeper.delete("/myrpc", -1);
         } catch (KeeperException | InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -72,8 +72,8 @@ public class ZookeeperTest {
     public void testExistsPNode() {
         try {
             // version: cas mysql 乐观锁， 也可以无视版本号 -1
-            Stat stat = zooKeeper.exists("/ydlclass", null);
-            zooKeeper.setData("/ydlclass", "hi".getBytes(), -1);
+            Stat stat = zooKeeper.exists("/myrpc", null);
+            zooKeeper.setData("/myrpc", "牛的123".getBytes(), -1);
             // 当前节点的数据版本
             int version = stat.getVersion();
             System.out.println("version = " + version);

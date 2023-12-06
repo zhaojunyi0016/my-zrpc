@@ -12,9 +12,9 @@
     <artifactId>demo</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>client-demo</module>
         <module>provider-demo</module>
         <module>api-demo</module>
+        <module>consumer-demo</module>
     </modules>
 
 

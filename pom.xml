@@ -13,7 +13,7 @@
         <module>rpc-framework</module>
         <module>rpc-framework/common</module>
         <module>rpc-framework/core</module>
-        <module>monitoring-center</module>
+        <module>manager</module>
     </modules>
 
 

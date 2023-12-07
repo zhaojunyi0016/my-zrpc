@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ZookeeperRegistry extends AbstractRegistry {
-    private ZooKeeper zooKeeper;
+    private final ZooKeeper zooKeeper;
 
     public ZookeeperRegistry() {
         log.debug("获取 zooKeeper 注册中心");
@@ -45,6 +45,14 @@ public class ZookeeperRegistry extends AbstractRegistry {
         ZookeeperUtil.createNode(zooKeeper, null, CreateMode.EPHEMERAL, zookeeperNode);
     }
 
+
+
+    /**
+     * TODO 每次都需要重新拉取服务列表吗, 本地缓存+watch 机制
+     * TODO 如何合理的选择一个可用的服务, 而不是 get(0)  负载均衡
+     * @param serviceName 方法的全限定名
+     * @return
+     */
     @Override
     public InetSocketAddress lookup(String serviceName) {
         // 找到服务对应的节点

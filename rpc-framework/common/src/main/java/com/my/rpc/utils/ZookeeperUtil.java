@@ -25,7 +25,7 @@ public class ZookeeperUtil {
             ZooKeeper zooKeeper = new ZooKeeper(DEFAULT_ZK_CONNECT, DEFAULT_ZK_TIMEOUT, watchedEvent -> {
                 if (watchedEvent.getType() == Watcher.Event.EventType.None) {
                     if (watchedEvent.getState() == Watcher.Event.KeeperState.SyncConnected) {
-                        System.out.println("连接成功");
+                        log.debug("获取 zk 连接成功..");
                         countDownLatch.countDown();
                     }
                 }
@@ -63,7 +63,7 @@ public class ZookeeperUtil {
                     zooKeeper.create(zookeeperNode.getNodePath(), null,
                             ZooDefs.Ids.OPEN_ACL_UNSAFE, createMode);
                 } else {
-                    System.out.println("节点已存在 exists = " + exists);
+                    log.warn("节点已存在 exists ={}", exists);
                 }
             }
         } catch (KeeperException | InterruptedException e) {

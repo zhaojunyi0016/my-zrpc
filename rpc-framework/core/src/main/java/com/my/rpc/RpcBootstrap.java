@@ -3,10 +3,21 @@ package com.my.rpc;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.protocol.ProtocolConfig;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -30,8 +41,14 @@ public class RpcBootstrap {
     // 注册中心
     private Registry registry;
 
+    // 连接的缓存
+    public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>();
+
     // 维护已经发布的服务列表  key -> interface全限定名称
     private static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>();
+
+    // 定义全局的 completableFuture
+    public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>();
 
     private RpcBootstrap() {
     }
@@ -83,14 +100,55 @@ public class RpcBootstrap {
     /**
      * 启动netty服务
      */
-    public void start() {
-        log.debug("项目启动");
+    public RpcBootstrap start() {
+        log.debug("项目启动中....");
+        // 1. 创建 bossGroup, 只负责处理请求 IO , 之后会将请求分发到 workGroup
+        EventLoopGroup bossGroup = new NioEventLoopGroup(2);
+        EventLoopGroup workGroup = new NioEventLoopGroup(10);
         try {
-            Thread.sleep(1000000000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+
+            // 需要服务器引导程序 ServerBootStrap
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            // 配置服务器
+            serverBootstrap = serverBootstrap.group(bossGroup, workGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                            socketChannel.pipeline().addLast(new SimpleChannelInboundHandler() {
+                                @Override
+                                protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                    // 处理收到的数据,并反馈消息到到客户端
+                                    ByteBuf in = (ByteBuf) msg;
+                                    log.debug("收到客户端发过来的消息: {}", in.toString(StandardCharsets.UTF_8));
+
+                                    //写入并发送信息到远端（客户端）
+                                    ctx.channel().writeAndFlush(Unpooled.copiedBuffer("你好, 我是 server,我己经收到你发送的消息", CharsetUtil.UTF_8));
+                                }
+                            });
+                        }
+                    });
+            // 绑定端口
+            ChannelFuture channelFuture = serverBootstrap.bind(8088).sync();
+            log.debug("项目启动完成...");
+            // 接受客户端发送的消息
+            channelFuture.channel().closeFuture().sync();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                bossGroup.shutdownGracefully().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                workGroup.shutdownGracefully().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            log.warn("项目关闭");
         }
-        log.warn("项目关闭");
+        return this;
     }
 
 

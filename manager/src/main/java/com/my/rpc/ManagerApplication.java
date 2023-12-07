@@ -1,5 +1,6 @@
 package com.my.rpc;
 
+import com.my.rpc.constant.Constant;
 import com.my.rpc.utils.ZookeeperNode;
 import com.my.rpc.utils.ZookeeperUtil;
 import org.apache.zookeeper.CreateMode;
@@ -18,9 +19,9 @@ public class ManagerApplication {
         ZooKeeper zooKeeper = ZookeeperUtil.create();
 
         // 定义节点
-        ZookeeperNode baseNode = new ZookeeperNode("/myrpc-metaData", null);
-        ZookeeperNode provideNode = new ZookeeperNode(baseNode.getNodePath() + "/provide", null);
-        ZookeeperNode consumerNode = new ZookeeperNode(baseNode.getNodePath() + "/consumer", null);
+        ZookeeperNode baseNode = new ZookeeperNode(Constant.BASE_PATH, null);
+        ZookeeperNode provideNode = new ZookeeperNode(Constant.PROVIDE_PATH, null);
+        ZookeeperNode consumerNode = new ZookeeperNode(Constant.CONSUMER_PATH, null);
 
         // 创建节点
         ZookeeperUtil.createNode(zooKeeper, null, CreateMode.PERSISTENT, baseNode, provideNode, consumerNode);

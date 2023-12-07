@@ -1,9 +1,9 @@
 import com.my.rpc.RpcBootstrap;
 import com.my.rpc.SayHelloRpc;
 import com.my.rpc.ServiceConfig;
+import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.impl.HelloRpcImpl;
 import com.my.rpc.protocol.ProtocolConfig;
-import com.my.rpc.register.RegistryConfig;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,8 +22,10 @@ public class ProvideAplication {
         // 配置--应用的名称  --注册中心
         // 发布服务
 
-        // 定义具体的服务
 
+        log.debug("provide start....");
+
+        // 定义具体的服务
         ServiceConfig<SayHelloRpc> service = new ServiceConfig<>();
         service.setInterface(SayHelloRpc.class);
         service.setRef(new HelloRpcImpl());
@@ -31,7 +33,7 @@ public class ProvideAplication {
         RpcBootstrap.getInstance()
                 .application("first-rpc-provide")
                 // 配置注册中心
-                .registry(new RegistryConfig("zookeeper://127.0.0.1:2181"))
+                .registry(new RegistryConfig("zookeeper", "127.0.0.1:2181"))
                 // 配置协议
                 .protocol(new ProtocolConfig("jdk"))
                 // 发布服务

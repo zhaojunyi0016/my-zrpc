@@ -1,20 +1,21 @@
 package com.my.rpc;
 
+import com.my.rpc.channelHandler.handler.RpcMessageDeEncoder;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.protocol.ProtocolConfig;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.CharsetUtil;
+import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -115,17 +116,8 @@ public class RpcBootstrap {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(new SimpleChannelInboundHandler() {
-                                @Override
-                                protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                    // 处理收到的数据,并反馈消息到到客户端
-                                    ByteBuf in = (ByteBuf) msg;
-                                    log.debug("收到客户端发过来的消息: {}", in.toString(StandardCharsets.UTF_8));
-
-                                    //写入并发送信息到远端（客户端）
-                                    ctx.channel().writeAndFlush(Unpooled.copiedBuffer("你好, 我是 server,我己经收到你发送的消息", CharsetUtil.UTF_8));
-                                }
-                            });
+                            socketChannel.pipeline().addLast(new LoggingHandler());
+                            socketChannel.pipeline().addLast(new RpcMessageDeEncoder());
                         }
                     });
             // 绑定端口

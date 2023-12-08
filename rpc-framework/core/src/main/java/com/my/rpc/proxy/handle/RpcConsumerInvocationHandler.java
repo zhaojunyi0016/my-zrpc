@@ -5,7 +5,8 @@ import com.my.rpc.RpcBootstrap;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.exception.DiscoveryException;
 import com.my.rpc.exception.NetException;
-import io.netty.buffer.Unpooled;
+import com.my.rpc.transport.message.RequestPayload;
+import com.my.rpc.transport.message.RpcRequest;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
@@ -51,17 +52,34 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         // 发现服务, 从注册中心, 寻找一个可用的服务
         InetSocketAddress address = registry.lookup(interfaceRef.getName());
+
         // 获取一个 channel
         Channel channel = getAvailableChannel(address);
 
+        // 封装报文对象
+        RequestPayload requestPayload = RequestPayload.builder()
+                .interfaceName(interfaceRef.getName())
+                .methodName(method.getName())
+                .parametersType(method.getParameterTypes())
+                .parametersValue(args)
+                .returnType(method.getReturnType()).build();
+        // TODO 对 id 和类型做动态处理
+        RpcRequest rpcRequest = RpcRequest.builder()
+                .requestId(1L)
+                .requestType((byte) 1)
+                .compressType((byte) 1)
+                .serializeType((byte) 1)
+                .requestPayload(requestPayload).build();
 
-        // TODO 封装报文
+        // 序列化报文对象
+        // 压缩报文
+
 
         // 服务端返回的结果
         CompletableFuture<Object> resultFuture = new CompletableFuture<>();
         RpcBootstrap.PENDING_REQUEST.put(1L, resultFuture);
         // 发送请求
-        channel.writeAndFlush(Unpooled.copiedBuffer("hello, im Client".getBytes())).addListener((ChannelFutureListener) promise -> {
+        channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
             // 捕获 发数据的结果是否异常
             if (!promise.isSuccess()) {
                 resultFuture.completeExceptionally(promise.cause());

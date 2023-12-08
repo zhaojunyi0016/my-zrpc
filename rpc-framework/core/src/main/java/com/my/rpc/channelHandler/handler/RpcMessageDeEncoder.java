@@ -1,5 +1,6 @@
 package com.my.rpc.channelHandler.handler;
 
+import com.my.rpc.enums.RequestEnum;
 import com.my.rpc.transport.message.MessageFormatConstant;
 import com.my.rpc.transport.message.RequestPayload;
 import com.my.rpc.transport.message.RpcRequest;
@@ -80,28 +81,25 @@ public class RpcMessageDeEncoder extends LengthFieldBasedFrameDecoder {
         }
 
         // 3. 解析头部长度
-        short headLength = buf.readShort();
-
-
+        final short headLength = buf.readShort();
         // 4. full length
-        int fullLength = buf.readInt();
-
+        final int fullLength = buf.readInt();
         // 5. 请求类型
-        byte requestType = buf.readByte();
+        final byte requestType = buf.readByte();
         // 6. 序列化类型
-        byte serializeType = buf.readByte();
+        final byte serializeType = buf.readByte();
         // 7. 压缩类型
-        byte compressType = buf.readByte();
+        final byte compressType = buf.readByte();
         // 8. 请求Id
-        long requestId = buf.readLong();
+        final long requestId = buf.readLong();
 
         RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setRequestType(requestType);
         rpcRequest.setSerializeType(serializeType);
         rpcRequest.setCompressType(compressType);
         rpcRequest.setRequestId(requestId);
-        // TODO 心跳请求 没有负载
-        if (requestType == 2) {
+        // 心跳请求 没有负载
+        if (requestType == RequestEnum.HEART_BEAT.getId()) {
             return rpcRequest;
         }
         // 9. 请求负载

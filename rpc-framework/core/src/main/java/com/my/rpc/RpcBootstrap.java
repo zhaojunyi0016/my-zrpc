@@ -1,5 +1,6 @@
 package com.my.rpc;
 
+import com.my.rpc.channelHandler.handler.MethodCallHandler;
 import com.my.rpc.channelHandler.handler.RpcMessageDeEncoder;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
@@ -31,7 +32,7 @@ public class RpcBootstrap {
     private static RpcBootstrap rpcBootstrap = new RpcBootstrap();
 
     // 默认名称
-    private String appName = "defalut";
+    private String appName = "default";
 
     // 注册中心
     private RegistryConfig registryConfig;
@@ -46,7 +47,7 @@ public class RpcBootstrap {
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>();
 
     // 维护已经发布的服务列表  key -> interface全限定名称
-    private static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>();
+    public static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>();
 
     // 定义全局的 completableFuture
     public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>();
@@ -117,7 +118,10 @@ public class RpcBootstrap {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline().addLast(new LoggingHandler());
+                            // 解码器
                             socketChannel.pipeline().addLast(new RpcMessageDeEncoder());
+                            // 根据请求进行方法调用
+                            socketChannel.pipeline().addLast(new MethodCallHandler());
                         }
                     });
             // 绑定端口
@@ -176,6 +180,12 @@ public class RpcBootstrap {
     }
 
     //--------------------------------服务提供方的 api-----------------------------------------
+
+
+
+
+
+
 
 
     //--------------------------------服务调用方的 api-----------------------------------------

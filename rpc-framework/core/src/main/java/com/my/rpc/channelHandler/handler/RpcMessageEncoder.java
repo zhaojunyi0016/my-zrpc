@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Objects;
 
 /**
  * 编码器: 出站时 -> 将报文转成二进制编码
@@ -39,7 +40,7 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
         // 2个字节 header 信息长度
         byteBuf.writeShort(MessageFormatConstant.HEADER_LENGTH);
         // full length  先空出 4个比特位置
-        byteBuf.writerIndex(byteBuf.writerIndex() + 4);
+        byteBuf.writerIndex(byteBuf.writerIndex() + MessageFormatConstant.FULL_FIELD_LENGTH);
         // request type
         byteBuf.writeByte(rpcRequest.getRequestType());
         // serialize type
@@ -48,15 +49,21 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
         byteBuf.writeByte(rpcRequest.getCompressType());
         // 8个字节  请求id
         byteBuf.writeLong(rpcRequest.getRequestId());
-        // 写入 body
-        byte[] bodyBytes = getBodyBytes(rpcRequest.getRequestPayload());
-        byteBuf.writeBytes(bodyBytes);
 
+        // 写入 body
+        byte[] bodyBytes = getBodyBytes(rpcRequest.getRequestId(), rpcRequest.getRequestPayload());
+        if (Objects.nonNull(bodyBytes)) {
+            byteBuf.writeBytes(bodyBytes);
+        }
+        int bodyLength = Objects.nonNull(bodyBytes) ? bodyBytes.length : 0;
         // 写指针最后的位置
         int lastIndex = byteBuf.writerIndex();
         // 将写指针的位置移动到总长度的位置上
-        byteBuf.writerIndex(7);
-        byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyBytes.length);
+        byteBuf.writerIndex(
+                MessageFormatConstant.MAGIC.length
+                        + MessageFormatConstant.VERSION_LENGTH
+                        + MessageFormatConstant.HEADER_FIELD_LENGTH);
+        byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
         // 写指针归为
         byteBuf.writerIndex(lastIndex);
     }
@@ -65,12 +72,14 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
     /**
      * 将对象转换成字节数组
      *
+     * @param requestId
      * @param requestPayload body 消息体
      * @return byte[]
      */
-    private byte[] getBodyBytes(RequestPayload requestPayload) {
-        // TODO 针对不同的消息类型, 需要做不同的处理, 心跳的请求, 是没有 payload
-
+    private byte[] getBodyBytes(long requestId, RequestPayload requestPayload) {
+        if (requestPayload == null) {
+            return null;
+        }
         // TODO 通过设计模式, 让我们可以通过配置得到不同的序列化+压缩方式
         // 对象 序列化 -> 二进制
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -82,7 +91,7 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
             // TODO 压缩
             return baos.toByteArray();
         } catch (IOException e) {
-            log.error("序列化对象时, 出现异常, error ={}", e);
+            log.error("序列化对象时, 出现异常, requestId ={},  error ={}", requestId, e);
             throw new RuntimeException(e);
         }
     }

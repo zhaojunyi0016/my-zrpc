@@ -3,6 +3,7 @@ package com.my.rpc.proxy.handle;
 import com.my.rpc.ConsumerNettyBootstrapInitializer;
 import com.my.rpc.RpcBootstrap;
 import com.my.rpc.discovery.Registry;
+import com.my.rpc.enums.RequestEnum;
 import com.my.rpc.exception.DiscoveryException;
 import com.my.rpc.exception.NetException;
 import com.my.rpc.transport.message.RequestPayload;
@@ -66,20 +67,17 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         // TODO 对 id 和类型做动态处理
         RpcRequest rpcRequest = RpcRequest.builder()
                 .requestId(1L)
-                .requestType((byte) 1)
+                .requestType(RequestEnum.REQUEST.getId())
                 .compressType((byte) 1)
                 .serializeType((byte) 1)
                 .requestPayload(requestPayload).build();
-
-        // 序列化报文对象
-        // 压缩报文
-
 
         // 服务端返回的结果
         CompletableFuture<Object> resultFuture = new CompletableFuture<>();
         RpcBootstrap.PENDING_REQUEST.put(1L, resultFuture);
         // 发送请求
         channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
+            // 发送出去经过 pipeline 加工处理
             // 捕获 发数据的结果是否异常
             if (!promise.isSuccess()) {
                 resultFuture.completeExceptionally(promise.cause());

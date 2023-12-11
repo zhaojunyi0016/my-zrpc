@@ -1,20 +1,17 @@
 package com.my.rpc.channelHandler.handler;
 
-import com.my.rpc.enums.RequestEnum;
+import com.my.rpc.enums.SerializeEnum;
+import com.my.rpc.serialize.Serializer;
+import com.my.rpc.serialize.SerializerFactory;
 import com.my.rpc.transport.message.MessageFormatConstant;
-import com.my.rpc.transport.message.RequestPayload;
-import com.my.rpc.transport.message.RpcRequest;
+import com.my.rpc.transport.message.RpcResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
 /**
- * 基于长度字段的帧解码器: 入站时 -> 将二进制编码转成报文
+ * 响应解码器 : 基于长度字段的帧解码器: 入站时 -> 将二进制编码转成报文
  * 4B magic 魔数
  * 1B version 版本
  * 2B header length 头部的长度
@@ -29,9 +26,9 @@ import java.io.ObjectInputStream;
  * Date : 2023/12/8 14:23
  */
 @Slf4j
-public class RpcMessageDeEncoder extends LengthFieldBasedFrameDecoder {
+public class RpcResponseDeEncoder extends LengthFieldBasedFrameDecoder {
 
-    public RpcMessageDeEncoder() {
+    public RpcResponseDeEncoder() {
         // 找到当前报文的总长度, 截取报文, 再进行解析
         super(
                 // 最大帧的长度, 超过 maxFrameLength 的会直接丢弃
@@ -52,7 +49,7 @@ public class RpcMessageDeEncoder extends LengthFieldBasedFrameDecoder {
         Object decode = super.decode(ctx, in);
         if (decode instanceof ByteBuf) {
             ByteBuf buf = (ByteBuf) decode;
-            return decodeFram(buf);
+            return decodeFrame(buf);
         }
         return null;
     }
@@ -64,7 +61,7 @@ public class RpcMessageDeEncoder extends LengthFieldBasedFrameDecoder {
      * @param buf
      * @return
      */
-    private Object decodeFram(ByteBuf buf) {
+    private Object decodeFrame(ByteBuf buf) {
         // 1. 解析魔数
         byte[] magic = new byte[MessageFormatConstant.MAGIC.length];
         buf.readBytes(magic);
@@ -84,8 +81,8 @@ public class RpcMessageDeEncoder extends LengthFieldBasedFrameDecoder {
         final short headLength = buf.readShort();
         // 4. full length
         final int fullLength = buf.readInt();
-        // 5. 请求类型
-        final byte requestType = buf.readByte();
+        // 5. 响应码
+        final byte respCode = buf.readByte();
         // 6. 序列化类型
         final byte serializeType = buf.readByte();
         // 7. 压缩类型
@@ -93,32 +90,27 @@ public class RpcMessageDeEncoder extends LengthFieldBasedFrameDecoder {
         // 8. 请求Id
         final long requestId = buf.readLong();
 
-        RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setRequestType(requestType);
-        rpcRequest.setSerializeType(serializeType);
-        rpcRequest.setCompressType(compressType);
-        rpcRequest.setRequestId(requestId);
+        RpcResponse rpcResponse = new RpcResponse();
+        rpcResponse.setCode(respCode);
+        rpcResponse.setSerializeType(serializeType);
+        rpcResponse.setCompressType(compressType);
+        rpcResponse.setRequestId(requestId);
         // 心跳请求 没有负载
-        if (requestType == RequestEnum.HEART_BEAT.getId()) {
-            return rpcRequest;
-        }
+//        if (requestType == RequestEnum.HEART_BEAT.getId()) {
+//            return rpcResponse;
+//        }
         // 9. 请求负载
-        int payloadLength = fullLength - headLength;
-        byte[] payload = new byte[payloadLength];
-        buf.readBytes(payload);
+        int bodyLength = fullLength - headLength;
+        byte[] body = new byte[bodyLength];
+        buf.readBytes(body);
 
         // 有了body字节数组之后, 就可以解压缩, 反序列化
         // TODO 解压缩
         // 反序列化
 
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(payload);
-             ObjectInputStream ois = new ObjectInputStream(bis)
-        ) {
-            RequestPayload requestPayload = (RequestPayload) ois.readObject();
-            rpcRequest.setRequestPayload(requestPayload);
-        } catch (IOException | ClassNotFoundException e) {
-            log.error("反序列化失败 requestId = {}, error = {}", requestId, e);
-        }
-        return rpcRequest;
+        Serializer serializer = SerializerFactory.getSerializer(SerializeEnum.getDescByCode(serializeType));
+        Object response = serializer.deserialize(body, Object.class);
+        rpcResponse.setBody(response);
+        return rpcResponse;
     }
 }

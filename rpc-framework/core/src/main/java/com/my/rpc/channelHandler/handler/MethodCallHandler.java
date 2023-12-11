@@ -2,8 +2,10 @@ package com.my.rpc.channelHandler.handler;
 
 import com.my.rpc.RpcBootstrap;
 import com.my.rpc.ServiceConfig;
+import com.my.rpc.enums.ResponseEnum;
 import com.my.rpc.transport.message.RequestPayload;
 import com.my.rpc.transport.message.RpcRequest;
+import com.my.rpc.transport.message.RpcResponse;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -23,15 +25,30 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<RpcRequest> {
         // 1. 获取负载内容
         RequestPayload requestPayload = rpcRequest.getRequestPayload();
         // 2. 根据负载内容进行方法调用
-        Object object = callTargetMethod(requestPayload, rpcRequest.getRequestId());
+        Object result = callTargetMethod(requestPayload, rpcRequest.getRequestId());
+        log.debug("服务端对请求 id ={} 的调用结束, 返回结果为 =[{}] ", rpcRequest.getRequestId(), result);
 
-        // 3. 封装响应 TODO
+        // 3. 封装响应报文
+        // TODO 对 id 和类型做动态处理
+        RpcResponse response = RpcResponse.builder()
+                .requestId(rpcRequest.getRequestId())
+                .compressType(rpcRequest.getCompressType())
+                .serializeType(rpcRequest.getSerializeType())
+                .code(ResponseEnum.SUCCESS.getCode())
+                .body(result).build();
 
-        // 4. 返回给调用方
-        ctx.channel().writeAndFlush(object);
+        // 4. 写出结果, 交给下一个 pipeline
+        ctx.channel().writeAndFlush(response);
     }
 
 
+    /**
+     * 通过反射调用方法
+     *
+     * @param requestPayload 负载对象
+     * @param requestId      请求 id
+     * @return 方法返回
+     */
     private Object callTargetMethod(RequestPayload requestPayload, long requestId) {
         // 接口名
         String interfaceName = requestPayload.getInterfaceName();

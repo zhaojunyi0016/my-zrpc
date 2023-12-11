@@ -4,10 +4,12 @@ import com.my.rpc.ConsumerNettyBootstrapInitializer;
 import com.my.rpc.RpcBootstrap;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.enums.RequestEnum;
+import com.my.rpc.enums.SerializeEnum;
 import com.my.rpc.exception.DiscoveryException;
 import com.my.rpc.exception.NetException;
 import com.my.rpc.transport.message.RequestPayload;
 import com.my.rpc.transport.message.RpcRequest;
+import com.my.rpc.utils.SnowflakeIdGenerator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
@@ -64,17 +66,18 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .parametersType(method.getParameterTypes())
                 .parametersValue(args)
                 .returnType(method.getReturnType()).build();
-        // TODO 对 id 和类型做动态处理
+        SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator(1, 2);
+        long requestId = snowflakeIdGenerator.getId();
         RpcRequest rpcRequest = RpcRequest.builder()
-                .requestId(1L)
+                .requestId(requestId)
                 .requestType(RequestEnum.REQUEST.getId())
                 .compressType((byte) 1)
-                .serializeType((byte) 1)
+                .serializeType(SerializeEnum.getCodeByDesc(RpcBootstrap.SERIALIZE_MODE))
                 .requestPayload(requestPayload).build();
 
         // 服务端返回的结果
         CompletableFuture<Object> resultFuture = new CompletableFuture<>();
-        RpcBootstrap.PENDING_REQUEST.put(1L, resultFuture);
+        RpcBootstrap.PENDING_REQUEST.put(requestId, resultFuture);
         // 发送请求
         channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
             // 发送出去经过 pipeline 加工处理
@@ -86,7 +89,9 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
         // 如果没有人处理 resultFuture, 这里会阻塞,  等到 complete 方法的执行
         // Q: 我们需要在哪里调用 complete(),  A: pipeline 中最终的 handle 处理的结果
-        return resultFuture.get(5, TimeUnit.SECONDS);
+        Object result = resultFuture.get(10, TimeUnit.SECONDS);
+        log.debug("请求Id={}, 发起调用获取最终结果 = [{}]", rpcRequest.getRequestId(), result);
+        return result;
     }
 
 

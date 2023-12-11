@@ -1,20 +1,19 @@
 package com.my.rpc.channelHandler.handler;
 
+import com.my.rpc.RpcBootstrap;
+import com.my.rpc.serialize.Serializer;
+import com.my.rpc.serialize.SerializerFactory;
 import com.my.rpc.transport.message.MessageFormatConstant;
-import com.my.rpc.transport.message.RequestPayload;
 import com.my.rpc.transport.message.RpcRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.Objects;
 
 /**
- * 编码器: 出站时 -> 将报文转成二进制编码
+ * 请求编码器 :  出站时 -> 将报文转成二进制编码
  * 4B magic 魔数
  * 1B version 版本
  * 2B header length 头部的长度
@@ -29,7 +28,7 @@ import java.util.Objects;
  * Date : 2023/12/8 14:23
  */
 @Slf4j
-public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
+public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
     @Override
     // 传入的是 rpcRequest 对象,  通过 byteBuf 写出去
     protected void encode(ChannelHandlerContext channelHandlerContext, RpcRequest rpcRequest, ByteBuf byteBuf) throws Exception {
@@ -50,8 +49,10 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
         // 8个字节  请求id
         byteBuf.writeLong(rpcRequest.getRequestId());
 
+        Serializer serializer = SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_MODE);
         // 写入 body
-        byte[] bodyBytes = getBodyBytes(rpcRequest.getRequestId(), rpcRequest.getRequestPayload());
+        byte[] bodyBytes = serializer.serialize(rpcRequest.getRequestPayload());
+        // TODO 压缩
         if (Objects.nonNull(bodyBytes)) {
             byteBuf.writeBytes(bodyBytes);
         }
@@ -69,30 +70,4 @@ public class RpcMessageEncoder extends MessageToByteEncoder<RpcRequest> {
     }
 
 
-    /**
-     * 将对象转换成字节数组
-     *
-     * @param requestId
-     * @param requestPayload body 消息体
-     * @return byte[]
-     */
-    private byte[] getBodyBytes(long requestId, RequestPayload requestPayload) {
-        if (requestPayload == null) {
-            return null;
-        }
-        // TODO 通过设计模式, 让我们可以通过配置得到不同的序列化+压缩方式
-        // 对象 序列化 -> 二进制
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = null;
-        try {
-            oos = new ObjectOutputStream(baos);
-            oos.writeObject(requestPayload);
-
-            // TODO 压缩
-            return baos.toByteArray();
-        } catch (IOException e) {
-            log.error("序列化对象时, 出现异常, requestId ={},  error ={}", requestId, e);
-            throw new RuntimeException(e);
-        }
-    }
 }

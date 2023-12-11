@@ -1,7 +1,8 @@
 package com.my.rpc;
 
 import com.my.rpc.channelHandler.handler.MethodCallHandler;
-import com.my.rpc.channelHandler.handler.RpcMessageDeEncoder;
+import com.my.rpc.channelHandler.handler.RpcRequestDeEncoder;
+import com.my.rpc.channelHandler.handler.RpcResponseEncoder;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.protocol.ProtocolConfig;
@@ -51,6 +52,8 @@ public class RpcBootstrap {
 
     // 定义全局的 completableFuture
     public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>();
+
+    public static String SERIALIZE_MODE = "jdk";
 
     private RpcBootstrap() {
     }
@@ -118,10 +121,12 @@ public class RpcBootstrap {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline().addLast(new LoggingHandler());
-                            // 解码器
-                            socketChannel.pipeline().addLast(new RpcMessageDeEncoder());
+                            // 解码器解析请求
+                            socketChannel.pipeline().addLast(new RpcRequestDeEncoder());
                             // 根据请求进行方法调用
                             socketChannel.pipeline().addLast(new MethodCallHandler());
+                            // 将响应结果编码
+                            socketChannel.pipeline().addLast(new RpcResponseEncoder());
                         }
                     });
             // 绑定端口
@@ -182,12 +187,6 @@ public class RpcBootstrap {
     //--------------------------------服务提供方的 api-----------------------------------------
 
 
-
-
-
-
-
-
     //--------------------------------服务调用方的 api-----------------------------------------
 
     /**
@@ -197,6 +196,29 @@ public class RpcBootstrap {
         // 在这个方法里我们是香可以拿到相关的配置项-注册中心
         // 配置reference，将来调用get方法时，方便生成代理对象
         reference.setRegistry(registry);
+        return this;
+    }
+
+    /**
+     * 配置序列化方式
+     *
+     * @param serializeMode 序列化方式
+     * @return
+     */
+    public RpcBootstrap serialize(String serializeMode) {
+        if (serializeMode != null) {
+            SERIALIZE_MODE = serializeMode;
+            log.debug("配置了序列化方式为 = {}", serializeMode);
+        }
+        return this;
+    }
+
+
+    /**
+     * 配置序列化方式
+     */
+    public RpcBootstrap serialize() {
+        log.debug("配置了默认的序列化方式");
         return this;
     }
 

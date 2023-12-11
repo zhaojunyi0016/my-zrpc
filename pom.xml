@@ -29,6 +29,8 @@
         <fastjson2.version>2.0.34</fastjson2.version>
         <logback.version>1.4.8</logback.version>
         <lombok.version>1.18.26</lombok.version>
+        <hessian.version>4.0.66</hessian.version>
+        <fastjson.version>2.0.26</fastjson.version>
     </properties>
 
     <dependencies>
@@ -70,6 +72,23 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
+            </dependency>
+            <!--hessian-->
+            <dependency>
+                <groupId>com.caucho</groupId>
+                <artifactId>hessian</artifactId>
+                <version>${hessian.version}</version>
+            </dependency>
+            <!--hessian-->
+            <dependency>
+                <groupId>com.caucho</groupId>
+                <artifactId>hessian</artifactId>
+                <version>${hessian.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${hessian.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

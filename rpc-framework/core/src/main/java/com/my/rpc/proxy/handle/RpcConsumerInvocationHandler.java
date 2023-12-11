@@ -3,6 +3,7 @@ package com.my.rpc.proxy.handle;
 import com.my.rpc.ConsumerNettyBootstrapInitializer;
 import com.my.rpc.RpcBootstrap;
 import com.my.rpc.discovery.Registry;
+import com.my.rpc.enums.CompressEnum;
 import com.my.rpc.enums.RequestEnum;
 import com.my.rpc.enums.SerializeEnum;
 import com.my.rpc.exception.DiscoveryException;
@@ -53,8 +54,8 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
      */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        // 发现服务, 从注册中心, 寻找一个可用的服务
-        InetSocketAddress address = registry.lookup(interfaceRef.getName());
+        // 获取当前配置的负载均衡器
+        InetSocketAddress address = RpcBootstrap.LOAD_BALANCE.selectAddress(interfaceRef.getName());
 
         // 获取一个 channel
         Channel channel = getAvailableChannel(address);
@@ -71,7 +72,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         RpcRequest rpcRequest = RpcRequest.builder()
                 .requestId(requestId)
                 .requestType(RequestEnum.REQUEST.getId())
-                .compressType((byte) 1)
+                .compressType(CompressEnum.getCodeByDesc(RpcBootstrap.COMPRESS_MODE))
                 .serializeType(SerializeEnum.getCodeByDesc(RpcBootstrap.SERIALIZE_MODE))
                 .requestPayload(requestPayload).build();
 
@@ -99,7 +100,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
      * 获取一个可用的 channel
      *
      * @param address ip 地址
-     * @return Channel
+     * @return io.netty.channel.Channel
      */
     private Channel getAvailableChannel(InetSocketAddress address) {
         // 从缓存中获取 channel

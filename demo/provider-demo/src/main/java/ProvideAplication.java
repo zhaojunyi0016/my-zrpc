@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 服务提供方, 注册服务, 启动服务
+ *
  * @Author : Williams
  * Date : 2023/12/4 18:41
  */
@@ -31,7 +32,7 @@ public class ProvideAplication {
          * 发布服务
          */
         RpcBootstrap.getInstance()
-                .application("first-rpc-provide")
+                .application("rpc-provide")
                 // 配置注册中心
                 .registry(new RegistryConfig("zookeeper", "127.0.0.1:2181"))
                 // 配置协议

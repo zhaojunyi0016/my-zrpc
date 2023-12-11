@@ -1,5 +1,6 @@
 package com.my.rpc.discovery.impl;
 
+import com.my.rpc.RpcBootstrap;
 import com.my.rpc.ServiceConfig;
 import com.my.rpc.constant.Constant;
 import com.my.rpc.discovery.AbstractRegistry;
@@ -40,21 +41,22 @@ public class ZookeeperRegistry extends AbstractRegistry {
 
         // 服务提供方的端口, 一般自己设定
         // ip 需要局域网 ip, 不是 127.0.0.1. 也不是 ipv6
-        String node = parentNode + "/" + NetUtil.getIp() + ":" + 8088;
+        String node = parentNode + "/" + NetUtil.getIp() + ":" + RpcBootstrap.port;
         zookeeperNode = new ZookeeperNode(node, null);
         ZookeeperUtil.createNode(zooKeeper, null, CreateMode.EPHEMERAL, zookeeperNode);
     }
 
 
-
     /**
+     * 拉取服务列表
      * TODO 每次都需要重新拉取服务列表吗, 本地缓存+watch 机制
      * TODO 如何合理的选择一个可用的服务, 而不是 get(0)  负载均衡
+     *
      * @param serviceName 方法的全限定名
      * @return
      */
     @Override
-    public InetSocketAddress lookup(String serviceName) {
+    public List<InetSocketAddress> lookup(String serviceName) {
         // 找到服务对应的节点
         String serviceNodePath = Constant.PROVIDE_PATH + "/" + serviceName;
 
@@ -68,8 +70,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
         }).collect(Collectors.toList());
 
         if (inetSocketAddressList.size() > 0) {
-            // 后续可以负债均衡
-            return inetSocketAddressList.get(0);
+            return inetSocketAddressList;
         } else {
             throw new NetException();
         }

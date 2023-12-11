@@ -49,10 +49,14 @@ public class RpcResponseEncoder extends MessageToByteEncoder<RpcResponse> {
         // 8个字节  请求id
         byteBuf.writeLong(rpcResponse.getRequestId());
 
+        // 序列化
         Serializer serializer = SerializerFactory.getSerializer(SerializeEnum.getDescByCode(rpcResponse.getSerializeType()));
-        // 写入 body
         byte[] bodyBytes = serializer.serialize(rpcResponse.getBody());
-        // TODO 压缩
+
+        // 压缩
+//        Compressor compressor = CompressorFactory.getCompressor(CompressEnum.getDescByCode(rpcResponse.getCompressType()));
+//        bodyBytes = compressor.compress(bodyBytes);
+
         if (Objects.nonNull(bodyBytes)) {
             byteBuf.writeBytes(bodyBytes);
         }

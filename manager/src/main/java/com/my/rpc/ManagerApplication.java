@@ -25,6 +25,7 @@ public class ManagerApplication {
 
         // 创建节点
         ZookeeperUtil.createNode(zooKeeper, null, CreateMode.PERSISTENT, baseNode, provideNode, consumerNode);
+
     }
 
 }

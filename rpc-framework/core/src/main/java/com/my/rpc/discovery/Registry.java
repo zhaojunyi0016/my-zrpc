@@ -3,6 +3,7 @@ package com.my.rpc.discovery;
 import com.my.rpc.ServiceConfig;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * 注册中心
@@ -26,5 +27,5 @@ public interface Registry {
      * @param serviceName 方法的全限定名
      * @return 服务的地址
      */
-    InetSocketAddress lookup(String serviceName);
+    List<InetSocketAddress> lookup(String serviceName);
 }

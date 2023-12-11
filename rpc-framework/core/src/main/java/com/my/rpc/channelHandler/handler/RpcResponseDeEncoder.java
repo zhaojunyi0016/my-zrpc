@@ -1,5 +1,9 @@
 package com.my.rpc.channelHandler.handler;
 
+import com.my.rpc.RpcBootstrap;
+import com.my.rpc.compress.Compressor;
+import com.my.rpc.compress.CompressorFactory;
+import com.my.rpc.enums.CompressEnum;
 import com.my.rpc.enums.SerializeEnum;
 import com.my.rpc.serialize.Serializer;
 import com.my.rpc.serialize.SerializerFactory;
@@ -104,10 +108,11 @@ public class RpcResponseDeEncoder extends LengthFieldBasedFrameDecoder {
         byte[] body = new byte[bodyLength];
         buf.readBytes(body);
 
-        // 有了body字节数组之后, 就可以解压缩, 反序列化
-        // TODO 解压缩
-        // 反序列化
+        // 解压缩
+//        Compressor compressor = CompressorFactory.getCompressor(CompressEnum.getDescByCode(compressType));
+//        body = compressor.decompress(body);
 
+        // 反序列化
         Serializer serializer = SerializerFactory.getSerializer(SerializeEnum.getDescByCode(serializeType));
         Object response = serializer.deserialize(body, Object.class);
         rpcResponse.setBody(response);

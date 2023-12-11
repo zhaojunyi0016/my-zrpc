@@ -2,9 +2,11 @@ package com.my.rpc.serialize.impl;
 
 import com.my.rpc.exception.SerializerException;
 import com.my.rpc.serialize.Serializer;
+import com.my.rpc.transport.message.RequestPayload;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
+import java.util.Arrays;
 
 /**
  * JDK 序列化
@@ -25,7 +27,8 @@ public class JdkSerializer implements Serializer {
         ) {
             oos.writeObject(object);
             log.debug("对象完成了 JDK 序列化....");
-            return baos.toByteArray();
+            byte[] bytes = baos.toByteArray();
+            return bytes;
         } catch (IOException e) {
             log.error("使用 JDK 序列化对象时, 出现异常 error ={}", e);
             throw new SerializerException(e);
@@ -48,5 +51,22 @@ public class JdkSerializer implements Serializer {
             log.error("使用 JDK 反序列化对象时, 出现异常 error ={}", e);
             throw new SerializerException(e);
         }
+    }
+
+
+    public static void main(String[] args) {
+        Serializer serializer = new JdkSerializer();
+        RequestPayload requestPayload = new RequestPayload();
+        requestPayload.setInterfaceName("xxx");
+        requestPayload.setMethodName("xxx");
+
+        // 加了这个不行 ,  不认 java.lang.String ,  想处理需要处理成字符串
+        requestPayload.setReturnType(String.class);
+
+        byte[] serialize = serializer.serialize(requestPayload);
+        System.out.println(Arrays.toString(serialize));
+
+        RequestPayload deserialize = serializer.deserialize(serialize, RequestPayload.class);
+        System.out.println(deserialize);
     }
 }

@@ -106,8 +106,10 @@ public class RpcRequestDeEncoder extends LengthFieldBasedFrameDecoder {
         byte[] payload = new byte[payloadLength];
         buf.readBytes(payload);
 
-        // 有了body字节数组之后, 就可以解压缩, 反序列化
-        // TODO 解压缩
+        // 解压缩
+//        Compressor compressor = CompressorFactory.getCompressor(CompressEnum.getDescByCode(compressType));
+//        payload = compressor.decompress(payload);
+
         // 反序列化
         Serializer serializer = SerializerFactory.getSerializer(SerializeEnum.getDescByCode(serializeType));
         RequestPayload requestPayload = serializer.deserialize(payload, RequestPayload.class);

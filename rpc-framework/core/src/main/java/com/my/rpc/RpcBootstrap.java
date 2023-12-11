@@ -5,6 +5,8 @@ import com.my.rpc.channelHandler.handler.RpcRequestDeEncoder;
 import com.my.rpc.channelHandler.handler.RpcResponseEncoder;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
+import com.my.rpc.loadbalance.LoadBalance;
+import com.my.rpc.loadbalance.impl.RoundRobinLoadBalance;
 import com.my.rpc.protocol.ProtocolConfig;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 /**
  * @Author : Williams
@@ -44,6 +47,9 @@ public class RpcBootstrap {
     // 注册中心
     private Registry registry;
 
+    // 负载均衡器
+    public static LoadBalance LOAD_BALANCE = new RoundRobinLoadBalance();
+
     // 连接的缓存
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>();
 
@@ -54,6 +60,10 @@ public class RpcBootstrap {
     public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>();
 
     public static String SERIALIZE_MODE = "jdk";
+
+    public static String COMPRESS_MODE = "gzip";
+    public static int port = 8090;
+
 
     private RpcBootstrap() {
     }
@@ -130,7 +140,7 @@ public class RpcBootstrap {
                         }
                     });
             // 绑定端口
-            ChannelFuture channelFuture = serverBootstrap.bind(8088).sync();
+            ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
             log.debug("项目启动完成...");
             // 接受客户端发送的消息
             channelFuture.channel().closeFuture().sync();
@@ -196,6 +206,7 @@ public class RpcBootstrap {
         // 在这个方法里我们是香可以拿到相关的配置项-注册中心
         // 配置reference，将来调用get方法时，方便生成代理对象
         reference.setRegistry(registry);
+        RpcBootstrap.LOAD_BALANCE = new RoundRobinLoadBalance();
         return this;
     }
 
@@ -222,7 +233,22 @@ public class RpcBootstrap {
         return this;
     }
 
+    public RpcBootstrap compress(String compressMode) {
+        if (compressMode != null) {
+            COMPRESS_MODE = compressMode;
+            log.debug("配置了压缩方式为 = {}", compressMode);
+        }
+        return this;
+    }
 
-    //--------------------------------服务调用方的 api-----------------------------------------
+    public RpcBootstrap compress() {
+        log.debug("配置了默认的压缩方式");
+        return this;
+    }
+
+    public Registry getRegistry() {
+        return registry;
+    }
+//--------------------------------服务调用方的 api-----------------------------------------
 
 }

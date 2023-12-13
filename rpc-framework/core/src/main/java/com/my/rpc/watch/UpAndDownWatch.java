@@ -10,6 +10,7 @@ import org.apache.zookeeper.Watcher;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author : Williams
@@ -25,7 +26,7 @@ public class UpAndDownWatch implements Watcher {
             Registry registry = RpcBootstrap.getInstance().getRegistry();
             String serviceName = getServiceName(watchedEvent.getPath());
             List<InetSocketAddress> addressList = registry.lookup(serviceName);
-            // 只能处理新增的节点, 因为都是拉取的最新节点
+            // 处理新增的节点, 因为都是拉取的最新节点
             for (InetSocketAddress address : addressList) {
                 // 新增的节点, 会在 address 中, 不在CHANNEL_CACHE中
                 if (!RpcBootstrap.CHANNEL_CACHE.containsKey(address)) {
@@ -37,6 +38,15 @@ public class UpAndDownWatch implements Watcher {
                         throw new RuntimeException(e);
                     }
 
+                }
+            }
+
+
+            // 处理下线的节点, 可能在缓存里面
+            for (Map.Entry<InetSocketAddress, Channel> entry : RpcBootstrap.CHANNEL_CACHE.entrySet()) {
+                // 不在 address 里面, 说明已经下线了
+                if (!addressList.contains(entry.getKey())) {
+                    RpcBootstrap.CHANNEL_CACHE.remove(entry.getKey());
                 }
             }
         }

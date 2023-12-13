@@ -3,11 +3,10 @@ import com.my.rpc.SayHelloRpc;
 import com.my.rpc.ServiceConfig;
 import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.impl.HelloRpcImpl;
-import com.my.rpc.protocol.ProtocolConfig;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 服务提供方, 注册服务, 启动服务
+ * 服务提供方
  *
  * @Author : Williams
  * Date : 2023/12/4 18:41
@@ -35,8 +34,6 @@ public class ProvideAplication {
                 .application("rpc-provide")
                 // 配置注册中心
                 .registry(new RegistryConfig("zookeeper", "127.0.0.1:2181"))
-                // 配置协议
-                .protocol(new ProtocolConfig("jdk"))
                 // 发布服务
                 .publish(service)
                 // 启动服务

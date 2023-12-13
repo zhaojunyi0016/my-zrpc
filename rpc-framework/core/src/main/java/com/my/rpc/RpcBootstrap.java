@@ -8,7 +8,6 @@ import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.loadbalance.LoadBalance;
 import com.my.rpc.loadbalance.impl.RoundRobinLoadBalance;
-import com.my.rpc.protocol.ProtocolConfig;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -43,9 +42,6 @@ public class RpcBootstrap {
     // 注册中心
     private RegistryConfig registryConfig;
 
-    // 序列化协议
-    private ProtocolConfig protocolConfig;
-
     // 注册中心
     private Registry registry;
 
@@ -67,7 +63,7 @@ public class RpcBootstrap {
     public static String SERIALIZE_MODE = "jdk";
 
     public static String COMPRESS_MODE = "gzip";
-    public static int port = 8099;
+    public static int port = 8090;
 
 
     private RpcBootstrap() {
@@ -105,17 +101,46 @@ public class RpcBootstrap {
         return this;
     }
 
+    public Registry getRegistry() {
+        return registry;
+    }
+
+
     /**
-     * 配置当前配置服务的序列化协议
+     * 配置序列化方式
      *
-     * @param protocolConfig 协议的封装
-     * @return this
+     * @param serializeMode 序列化方式
+     * @return
      */
-    public RpcBootstrap protocol(ProtocolConfig protocolConfig) {
-        this.protocolConfig = protocolConfig;
-        log.debug("当前工程使用了  {}   协议进行序列化", protocolConfig.getProtocolName());
+    public RpcBootstrap serialize(String serializeMode) {
+        if (serializeMode != null) {
+            SERIALIZE_MODE = serializeMode;
+            log.debug("配置了序列化方式为 = {}", serializeMode);
+        }
         return this;
     }
+
+    /**
+     * 配置序列化方式
+     */
+    public RpcBootstrap serialize() {
+        log.debug("配置了默认的序列化方式");
+        return this;
+    }
+
+    public RpcBootstrap compress(String compressMode) {
+        if (compressMode != null) {
+            COMPRESS_MODE = compressMode;
+            log.debug("配置了压缩方式为 = {}", compressMode);
+        }
+        return this;
+    }
+
+    public RpcBootstrap compress() {
+        log.debug("配置了默认的压缩方式");
+        return this;
+    }
+
 
     /**
      * 启动netty服务
@@ -135,6 +160,7 @@ public class RpcBootstrap {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
+                            // 打印日志
                             socketChannel.pipeline().addLast(new LoggingHandler());
                             // 解码器解析请求
                             socketChannel.pipeline().addLast(new RpcRequestDeEncoder());
@@ -219,45 +245,6 @@ public class RpcBootstrap {
         return this;
     }
 
-    /**
-     * 配置序列化方式
-     *
-     * @param serializeMode 序列化方式
-     * @return
-     */
-    public RpcBootstrap serialize(String serializeMode) {
-        if (serializeMode != null) {
-            SERIALIZE_MODE = serializeMode;
-            log.debug("配置了序列化方式为 = {}", serializeMode);
-        }
-        return this;
-    }
-
-
-    /**
-     * 配置序列化方式
-     */
-    public RpcBootstrap serialize() {
-        log.debug("配置了默认的序列化方式");
-        return this;
-    }
-
-    public RpcBootstrap compress(String compressMode) {
-        if (compressMode != null) {
-            COMPRESS_MODE = compressMode;
-            log.debug("配置了压缩方式为 = {}", compressMode);
-        }
-        return this;
-    }
-
-    public RpcBootstrap compress() {
-        log.debug("配置了默认的压缩方式");
-        return this;
-    }
-
-    public Registry getRegistry() {
-        return registry;
-    }
 //--------------------------------服务调用方的 api-----------------------------------------
 
 }

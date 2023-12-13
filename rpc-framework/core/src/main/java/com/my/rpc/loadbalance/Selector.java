@@ -16,11 +16,4 @@ public interface Selector {
     InetSocketAddress getNode();
 
 
-    /**
-     * 重新进行负载均衡
-     *
-     * @param serviceList
-     * @return
-     */
-    void reBalance();
 }

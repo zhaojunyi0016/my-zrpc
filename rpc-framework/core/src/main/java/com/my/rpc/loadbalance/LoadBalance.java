@@ -1,6 +1,7 @@
 package com.my.rpc.loadbalance;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * 负载均衡抽象接口
@@ -18,4 +19,13 @@ public interface LoadBalance {
      * @return 可用的具体节点
      */
     InetSocketAddress selectAddress(String serviceName);
+
+
+    /**
+     * 当感知到节点发生变化, 需要进行重新负载均衡
+     *
+     * @param serviceName
+     * @param addressList
+     */
+    void reBalance(String serviceName, List<InetSocketAddress> addressList);
 }

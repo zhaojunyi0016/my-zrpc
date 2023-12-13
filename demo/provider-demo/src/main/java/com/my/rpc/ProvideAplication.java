@@ -1,6 +1,5 @@
-import com.my.rpc.RpcBootstrap;
-import com.my.rpc.SayHelloRpc;
-import com.my.rpc.ServiceConfig;
+package com.my.rpc;
+
 import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.impl.HelloRpcImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +33,10 @@ public class ProvideAplication {
                 .application("rpc-provide")
                 // 配置注册中心
                 .registry(new RegistryConfig("zookeeper", "127.0.0.1:2181"))
-                // 发布服务
-                .publish(service)
+//                 发布服务
+//                .publish(service)
+                // 扫包发布服务
+                .scan("com.my.rpc")
                 // 启动服务
                 .start();
     }

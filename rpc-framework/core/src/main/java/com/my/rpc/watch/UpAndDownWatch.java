@@ -3,6 +3,7 @@ package com.my.rpc.watch;
 import com.my.rpc.ConsumerNettyBootstrapInitializer;
 import com.my.rpc.RpcBootstrap;
 import com.my.rpc.discovery.Registry;
+import com.my.rpc.loadbalance.LoadBalance;
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.WatchedEvent;
@@ -33,6 +34,7 @@ public class UpAndDownWatch implements Watcher {
                     try {
                         Channel channel = ConsumerNettyBootstrapInitializer.getBootstrap().connect(address).sync().channel();
                         // 刷新到缓存中
+                        log.warn("服务节点发生变化.... 新加入节点[{}]...", address.getAddress());
                         RpcBootstrap.CHANNEL_CACHE.put(address, channel);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
@@ -46,9 +48,14 @@ public class UpAndDownWatch implements Watcher {
             for (Map.Entry<InetSocketAddress, Channel> entry : RpcBootstrap.CHANNEL_CACHE.entrySet()) {
                 // 不在 address 里面, 说明已经下线了
                 if (!addressList.contains(entry.getKey())) {
+                    log.warn("服务节点发生变化.... 节点[{}]已下线...", entry.getValue().remoteAddress());
                     RpcBootstrap.CHANNEL_CACHE.remove(entry.getKey());
                 }
             }
+
+            // 获取负债均衡器, 进行 loadbalance
+            LoadBalance loadBalance = RpcBootstrap.LOAD_BALANCE;
+            loadBalance.reBalance(serviceName, addressList);
         }
     }
 

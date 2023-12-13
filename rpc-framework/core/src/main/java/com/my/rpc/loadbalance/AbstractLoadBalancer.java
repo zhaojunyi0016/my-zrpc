@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractLoadBalancer implements LoadBalance {
 
     // 一个接口 匹配一个 selector
-    private Map<String, Selector> selectorCache = new ConcurrentHashMap<>();
+    private final Map<String, Selector> selectorCache = new ConcurrentHashMap<>();
 
     @Override
     public InetSocketAddress selectAddress(String serviceName) {
@@ -27,6 +27,12 @@ public abstract class AbstractLoadBalancer implements LoadBalance {
             selectorCache.put(serviceName, selector);
         }
         return selector.getNode();
+    }
+
+
+    @Override
+    public synchronized void reBalance(String serviceName, List<InetSocketAddress> addressList) {
+        selectorCache.put(serviceName, getSelector(addressList));
     }
 
 

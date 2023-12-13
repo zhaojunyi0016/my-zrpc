@@ -1,5 +1,6 @@
 package com.my.rpc;
 
+import com.my.rpc.annotation.RpcApi;
 import com.my.rpc.channelHandler.handler.MethodCallHandler;
 import com.my.rpc.channelHandler.handler.RpcRequestDeEncoder;
 import com.my.rpc.channelHandler.handler.RpcResponseEncoder;
@@ -19,12 +20,17 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 
 /**
@@ -34,36 +40,26 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class RpcBootstrap {
 
-    private static RpcBootstrap rpcBootstrap = new RpcBootstrap();
-
-    // 默认名称
-    private String appName = "default";
-
-    // 注册中心
-    private RegistryConfig registryConfig;
-
-    // 注册中心
-    private Registry registry;
-
-    // 负载均衡器
-    public static LoadBalance LOAD_BALANCE;
-
     // 连接的缓存
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>();
-
     // 相应时间
     public static final TreeMap<Long, InetSocketAddress> ANSWER_TIME_CHANNEL_CACHE = new TreeMap<>();
-
     // 维护已经发布的服务列表  key -> interface全限定名称
     public static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>();
-
     // 定义全局的 completableFuture
     public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>();
-
+    private static final RpcBootstrap rpcBootstrap = new RpcBootstrap();
+    // 负载均衡器
+    public static LoadBalance LOAD_BALANCE;
     public static String SERIALIZE_MODE = "jdk";
-
     public static String COMPRESS_MODE = "gzip";
     public static int port = 8090;
+    // 默认名称
+    private String appName = "default";
+    // 注册中心
+    private RegistryConfig registryConfig;
+    // 注册中心
+    private Registry registry;
 
 
     private RpcBootstrap() {
@@ -225,6 +221,97 @@ public class RpcBootstrap {
         return this;
     }
 
+    /**
+     * 扫描包下的类, 发布服务
+     *
+     * @param packageName
+     * @return
+     */
+    public RpcBootstrap scan(String packageName) {
+        // 1. 通过包名, 获取其下所有的类的全限定类名
+        List<String> classNames = getAllClassNames(packageName);
+
+        // 2. 通过反射获取具体实现接口
+        List<Class<?>> classes = classNames.stream()
+                .map(className -> {
+                    try {
+                        return Class.forName(className);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).filter(clazz -> clazz.getAnnotation(RpcApi.class) != null)
+                .collect(Collectors.toList());
+
+        for (Class<?> clazz : classes) {
+            // 获取接口
+            Class<?>[] interfaces = clazz.getInterfaces();
+            Object instance = null;
+            try {
+                instance = clazz.getConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+            // 循环所有接口, 暴露出去
+            for (Class<?> anInterface : interfaces) {
+                ServiceConfig<?> serviceConfig = new ServiceConfig<>();
+                serviceConfig.setInterface(anInterface);
+                serviceConfig.setRef(instance);
+                // 3. 发布服务
+                publish(serviceConfig);
+                log.debug("通过包扫描, 发布服务[{}]成功...", anInterface.getName());
+            }
+        }
+        return this;
+    }
+
+    private List<String> getAllClassNames(String packageName) {
+        // 1. 通过 packageName 获取绝对路径
+        String basePath = packageName.replace(".", "/");
+        System.out.println("basePath = " + basePath);
+        URL url = ClassLoader.getSystemClassLoader()
+                .getResource(basePath);
+        if (url == null) {
+            log.error("Resource not found.");
+            throw new RuntimeException("Resource not found");
+        }
+        String absolutePath = url.getPath();
+        List<String> classNames = new ArrayList<>();
+        classNames = recursionFile(absolutePath, classNames, basePath);
+        return classNames;
+    }
+
+    private List<String> recursionFile(String absolutePath, List<String> classNames, String basePath) {
+        // 获取文件
+        File file = new File(absolutePath);
+        // 判断是否文件夹
+        if (file.isDirectory()) {
+            File[] chilFiles = file.listFiles(pathname -> pathname.isDirectory() || pathname.getPath().contains(".class"));
+            if (chilFiles == null) {
+                return classNames;
+            }
+            for (File chilFile : chilFiles) {
+                if (chilFile.isDirectory()) {
+                    // 递归调用
+                    recursionFile(chilFile.getAbsolutePath(), classNames, basePath);
+                } else {
+                    // 文件 -> 累的全限定类名
+                    classNames.add(getClassNameByAbsolutePath(chilFile.getAbsolutePath(), basePath));
+                }
+            }
+        } else {
+            // 文件 -> 累的全限定类名
+            classNames.add(getClassNameByAbsolutePath(absolutePath, basePath));
+        }
+        return classNames;
+    }
+
+    private String getClassNameByAbsolutePath(String absolutePath, String basePath) {
+        String fileNams = absolutePath.substring(absolutePath.indexOf(basePath)).replace("/", ".");
+        return fileNams.substring(0, fileNams.indexOf(".class"));
+    }
+
+
     //--------------------------------服务提供方的 api-----------------------------------------
 
 
@@ -244,6 +331,7 @@ public class RpcBootstrap {
         HeartbeatDetector.detectorHeartbeat(reference.getInterfaceRef().getName());
         return this;
     }
+
 
 //--------------------------------服务调用方的 api-----------------------------------------
 

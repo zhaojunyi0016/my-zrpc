@@ -1,12 +1,7 @@
-import com.my.rpc.ReferenceConfig;
-import com.my.rpc.RpcBootstrap;
-import com.my.rpc.SayHelloRpc;
-import com.my.rpc.ServiceConfig;
-import com.my.rpc.core.HeartbeatDetector;
+package com.my.rpc;
+
 import com.my.rpc.discovery.RegistryConfig;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Map;
 
 /**
  * 服务消费方

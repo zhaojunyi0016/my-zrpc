@@ -9,7 +9,7 @@ public class ServiceConfig<T> {
     /**
      * class
      */
-    private Class<T> interfaceProvide;
+    private Class<?> interfaceProvide;
 
     /**
      * 具体实现
@@ -17,11 +17,11 @@ public class ServiceConfig<T> {
     private Object ref;
 
 
-    public Class<T> getInterface() {
+    public Class<?> getInterface() {
         return interfaceProvide;
     }
 
-    public void setInterface(Class<T> interfaceProvide) {
+    public void setInterface(Class<?> interfaceProvide) {
         this.interfaceProvide = interfaceProvide;
     }
 

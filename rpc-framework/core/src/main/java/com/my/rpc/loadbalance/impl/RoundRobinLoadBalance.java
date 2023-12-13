@@ -6,7 +6,6 @@ import com.my.rpc.loadbalance.Selector;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,8 +29,8 @@ public class RoundRobinLoadBalance extends AbstractLoadBalancer {
      */
     private static class RoundSelector implements Selector {
 
+        private final AtomicInteger index;
         List<InetSocketAddress> serviceList;
-        private AtomicInteger index;
 
         public RoundSelector(List<InetSocketAddress> serviceList) {
             this.serviceList = serviceList;
@@ -54,25 +53,8 @@ public class RoundRobinLoadBalance extends AbstractLoadBalancer {
             return address;
         }
 
-        @Override
-        public void reBalance() {
 
-        }
     }
 
-    public static void main(String[] args) {
-        List<InetSocketAddress> serviceList = new ArrayList<>();
-        InetSocketAddress ine1 = new InetSocketAddress(8080);
-        InetSocketAddress ine2 = new InetSocketAddress(8081);
-        InetSocketAddress ine3 = new InetSocketAddress(8082);
 
-        serviceList.add(ine1);
-        serviceList.add(ine2);
-        serviceList.add(ine3);
-        RoundSelector roundSelector = new RoundSelector(serviceList);
-        for (int i = 0; i < 11; i++) {
-            InetSocketAddress next = roundSelector.getNode();
-            System.out.println(next);
-        }
-    }
 }

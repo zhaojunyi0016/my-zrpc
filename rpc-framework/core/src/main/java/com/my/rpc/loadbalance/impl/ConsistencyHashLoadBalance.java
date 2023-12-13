@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 一致性 hash 负载均衡策略
@@ -40,10 +39,6 @@ public class ConsistencyHashLoadBalance extends AbstractLoadBalancer {
             return null;
         }
 
-        @Override
-        public void reBalance() {
-
-        }
     }
 
 

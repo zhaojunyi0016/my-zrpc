@@ -40,9 +40,6 @@ public class MinimumRespTimeLoadBalancer extends AbstractLoadBalancer {
             }
         }
 
-        @Override
-        public void reBalance() {
 
-        }
     }
 }

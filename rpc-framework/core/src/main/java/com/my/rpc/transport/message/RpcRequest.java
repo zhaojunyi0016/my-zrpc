@@ -42,4 +42,8 @@ public class RpcRequest {
      */
     private RequestPayload requestPayload;
 
+    /**
+     * 时间戳
+     */
+    private long timestamp;
 }

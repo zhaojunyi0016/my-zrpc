@@ -8,6 +8,7 @@ import com.my.rpc.exception.NetException;
 import com.my.rpc.utils.NetUtil;
 import com.my.rpc.utils.ZookeeperNode;
 import com.my.rpc.utils.ZookeeperUtil;
+import com.my.rpc.watch.UpAndDownWatch;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooKeeper;
@@ -50,7 +51,6 @@ public class ZookeeperRegistry extends AbstractRegistry {
     /**
      * 拉取服务列表
      * TODO 每次都需要重新拉取服务列表吗, 本地缓存+watch 机制
-     * TODO 如何合理的选择一个可用的服务, 而不是 get(0)  负载均衡
      *
      * @param serviceName 方法的全限定名
      * @return
@@ -61,7 +61,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
         String serviceNodePath = Constant.PROVIDE_PATH + "/" + serviceName;
 
         // 从 zk 中获取他的子节点   如果children 有问题, watch机制干活 TODO
-        List<String> children = ZookeeperUtil.getChildren(zooKeeper, serviceNodePath, null);
+        List<String> children = ZookeeperUtil.getChildren(zooKeeper, serviceNodePath, new UpAndDownWatch());
 
         // 获取了所有的可用的服务列表
         List<InetSocketAddress> inetSocketAddressList = children.stream().map(ipString -> {

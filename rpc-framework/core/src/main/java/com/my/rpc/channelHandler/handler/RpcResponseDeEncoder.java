@@ -4,6 +4,7 @@ import com.my.rpc.RpcBootstrap;
 import com.my.rpc.compress.Compressor;
 import com.my.rpc.compress.CompressorFactory;
 import com.my.rpc.enums.CompressEnum;
+import com.my.rpc.enums.RequestEnum;
 import com.my.rpc.enums.SerializeEnum;
 import com.my.rpc.serialize.Serializer;
 import com.my.rpc.serialize.SerializerFactory;
@@ -13,6 +14,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Date;
 
 /**
  * 响应解码器 : 基于长度字段的帧解码器: 入站时 -> 将二进制编码转成报文
@@ -24,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
  * 1B serialize type  序列化的类型
  * 1B compress  type 压缩的类型
  * 8B requestId 请求 id
+ * 8B timestamp 时间戳
  * Body  通过总报文长度减去其他所有加起来的长度获取
  *
  * @Author : Williams
@@ -93,12 +97,15 @@ public class RpcResponseDeEncoder extends LengthFieldBasedFrameDecoder {
         final byte compressType = buf.readByte();
         // 8. 请求Id
         final long requestId = buf.readLong();
+        // 9. 时间戳
+        final long timestamp = buf.readLong();
 
         RpcResponse rpcResponse = new RpcResponse();
         rpcResponse.setCode(respCode);
         rpcResponse.setSerializeType(serializeType);
         rpcResponse.setCompressType(compressType);
         rpcResponse.setRequestId(requestId);
+        rpcResponse.setTimestamp(timestamp);
         // 心跳请求 没有负载
 //        if (requestType == RequestEnum.HEART_BEAT.getId()) {
 //            return rpcResponse;

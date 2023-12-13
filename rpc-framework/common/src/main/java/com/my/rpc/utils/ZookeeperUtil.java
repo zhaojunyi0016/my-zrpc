@@ -73,6 +73,29 @@ public class ZookeeperUtil {
     }
 
 
+
+
+    public static void deleteNode(ZooKeeper zooKeeper, ZookeeperNode... zookeeperNodes) {
+        for (ZookeeperNode zookeeperNode : zookeeperNodes) {
+            try {
+                // version: cas mysql 乐观锁， 也可以无视版本号 -1
+                zooKeeper.delete(zookeeperNode.getNodePath(), -1);
+            } catch (KeeperException | InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (zooKeeper != null) {
+                        zooKeeper.close();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+
     /**
      * 获取当前节点的子节点
      *

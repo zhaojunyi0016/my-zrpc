@@ -42,4 +42,9 @@ public class RpcResponse {
      */
     private Object body;
 
+    /**
+     * 时间戳
+     */
+    private long timestamp;
+
 }

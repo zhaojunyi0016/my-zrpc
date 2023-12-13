@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -74,6 +75,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .requestType(RequestEnum.REQUEST.getId())
                 .compressType(CompressEnum.getCodeByDesc(RpcBootstrap.COMPRESS_MODE))
                 .serializeType(SerializeEnum.getCodeByDesc(RpcBootstrap.SERIALIZE_MODE))
+                .timestamp(new Date().getTime())
                 .requestPayload(requestPayload).build();
 
         // 服务端返回的结果

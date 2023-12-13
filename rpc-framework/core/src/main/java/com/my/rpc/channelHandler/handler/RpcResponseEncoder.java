@@ -10,6 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -22,6 +23,7 @@ import java.util.Objects;
  * 1B serialize type  序列化的类型
  * 1B compress  type 压缩的类型
  * 8B requestId 请求 id
+ * 8B timestamp 时间戳
  * Body  通过总报文长度减去其他所有加起来的长度获取
  *
  * @Author : Williams
@@ -48,6 +50,8 @@ public class RpcResponseEncoder extends MessageToByteEncoder<RpcResponse> {
         byteBuf.writeByte(rpcResponse.getCompressType());
         // 8个字节  请求id
         byteBuf.writeLong(rpcResponse.getRequestId());
+        // 8个字节  时间戳
+        byteBuf.writeLong(rpcResponse.getTimestamp());
 
         // 序列化
         Serializer serializer = SerializerFactory.getSerializer(SerializeEnum.getDescByCode(rpcResponse.getSerializeType()));

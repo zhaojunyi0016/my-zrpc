@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  * 1B serialize type  序列化的类型
  * 1B compress  type 压缩的类型
  * 8B requestId 请求 id
+ * 8B timestamp 时间戳
  * Body  通过总报文长度减去其他所有加起来的长度获取
  *
  * @Author : Williams
@@ -47,6 +48,8 @@ public class RpcRequestDeEncoder extends LengthFieldBasedFrameDecoder {
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+        // TODO
+        Thread.sleep(50);
         // 解析成字节数组
         Object decode = super.decode(ctx, in);
         if (decode instanceof ByteBuf) {
@@ -91,12 +94,15 @@ public class RpcRequestDeEncoder extends LengthFieldBasedFrameDecoder {
         final byte compressType = buf.readByte();
         // 8. 请求Id
         final long requestId = buf.readLong();
+        // 9. 时间戳
+        final long timestamp = buf.readLong();
 
         RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setRequestType(requestType);
         rpcRequest.setSerializeType(serializeType);
         rpcRequest.setCompressType(compressType);
         rpcRequest.setRequestId(requestId);
+        rpcRequest.setTimestamp(timestamp);
         // 心跳请求 没有负载
         if (requestType == RequestEnum.HEART_BEAT.getId()) {
             return rpcRequest;

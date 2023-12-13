@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 /**
  * JDK 序列化
+ *
  * @Author : Williams
  * Date : 2023/12/10 00:33
  */
@@ -37,7 +38,7 @@ public class JdkSerializer implements Serializer {
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clazz) {
-        if (bytes == null || clazz == null) {
+        if (bytes == null || bytes.length == 0 || clazz == null) {
             return null;
         }
         try (

@@ -27,7 +27,7 @@ public class MessageFormatConstant {
     /**
      * header 信息长度
      */
-    public final static short HEADER_LENGTH = (byte) 4 + 1 + 2 + 4 + 1 + 1 + 1 + 8;
+    public final static short HEADER_LENGTH = (byte) 4 + 1 + 2 + 4 + 1 + 1 + 1 + 8 + 8;
 
 
     /**

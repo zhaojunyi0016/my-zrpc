@@ -3,6 +3,7 @@ package com.my.rpc;
 import com.my.rpc.channelHandler.handler.MethodCallHandler;
 import com.my.rpc.channelHandler.handler.RpcRequestDeEncoder;
 import com.my.rpc.channelHandler.handler.RpcResponseEncoder;
+import com.my.rpc.core.HeartbeatDetector;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.loadbalance.LoadBalance;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,10 +50,13 @@ public class RpcBootstrap {
     private Registry registry;
 
     // 负载均衡器
-    public static LoadBalance LOAD_BALANCE = new RoundRobinLoadBalance();
+    public static LoadBalance LOAD_BALANCE;
 
     // 连接的缓存
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>();
+
+    // 相应时间
+    public static final TreeMap<Long, InetSocketAddress> ANSWER_TIME_CHANNEL_CACHE = new TreeMap<>();
 
     // 维护已经发布的服务列表  key -> interface全限定名称
     public static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>();
@@ -62,7 +67,7 @@ public class RpcBootstrap {
     public static String SERIALIZE_MODE = "jdk";
 
     public static String COMPRESS_MODE = "gzip";
-    public static int port = 8090;
+    public static int port = 8099;
 
 
     private RpcBootstrap() {
@@ -207,6 +212,10 @@ public class RpcBootstrap {
         // 配置reference，将来调用get方法时，方便生成代理对象
         reference.setRegistry(registry);
         RpcBootstrap.LOAD_BALANCE = new RoundRobinLoadBalance();
+
+        // 开启这个服务的心跳检测
+        System.out.println("开始心跳检测....");
+        HeartbeatDetector.detectorHeartbeat(reference.getInterfaceRef().getName());
         return this;
     }
 

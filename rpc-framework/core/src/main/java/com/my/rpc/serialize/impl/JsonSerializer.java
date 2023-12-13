@@ -1,18 +1,15 @@
 package com.my.rpc.serialize.impl;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
-import com.my.rpc.exception.SerializerException;
 import com.my.rpc.serialize.Serializer;
-import com.my.rpc.serialize.SerializerFactory;
 import com.my.rpc.transport.message.RequestPayload;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
 import java.util.Arrays;
 
 /**
  * JSON 序列化
+ *
  * @Author : Williams
  * Date : 2023/12/10 00:33
  */
@@ -31,7 +28,7 @@ public class JsonSerializer implements Serializer {
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clazz) {
-        if (bytes == null || clazz == null) {
+        if (bytes == null || bytes.length == 0 || clazz == null) {
             return null;
         }
         T t = JSON.parseObject(bytes, clazz);

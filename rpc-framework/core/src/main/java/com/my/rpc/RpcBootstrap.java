@@ -7,8 +7,7 @@ import com.my.rpc.channelHandler.handler.RpcResponseEncoder;
 import com.my.rpc.core.HeartbeatDetector;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
-import com.my.rpc.loadbalance.LoadBalance;
-import com.my.rpc.loadbalance.impl.RoundRobinLoadBalance;
+import com.my.rpc.loadbalance.LoadBalancer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -42,27 +41,22 @@ public class RpcBootstrap {
 
     // 连接的缓存
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>();
-    // 相应时间
+    // 最短响应时间
     public static final TreeMap<Long, InetSocketAddress> ANSWER_TIME_CHANNEL_CACHE = new TreeMap<>();
     // 维护已经发布的服务列表  key -> interface全限定名称
     public static final Map<String, ServiceConfig<?>> SERVICE_LIST = new ConcurrentHashMap<>();
     // 定义全局的 completableFuture
     public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>();
     private static final RpcBootstrap rpcBootstrap = new RpcBootstrap();
-    // 负载均衡器
-    public static LoadBalance LOAD_BALANCE;
-    public static String SERIALIZE_MODE = "jdk";
-    public static String COMPRESS_MODE = "gzip";
-    public static int port = 8090;
-    // 默认名称
-    private String appName = "default";
     // 注册中心
-    private RegistryConfig registryConfig;
-    // 注册中心
-    private Registry registry;
+    public Registry registry;
+    // 全局的配置中心
+    private final Configuration configuration;
 
 
     private RpcBootstrap() {
+        // 创建配置中心
+        configuration = new Configuration();
     }
 
     /**
@@ -74,6 +68,7 @@ public class RpcBootstrap {
         return rpcBootstrap;
     }
 
+
     /**
      * 定义当前应用的名字
      *
@@ -81,7 +76,7 @@ public class RpcBootstrap {
      * @return this
      */
     public RpcBootstrap application(String appName) {
-        this.appName = appName;
+        configuration.setAppName(appName);
         return this;
     }
 
@@ -92,8 +87,31 @@ public class RpcBootstrap {
      * @return this
      */
     public RpcBootstrap registry(RegistryConfig registryConfig) {
-        this.registryConfig = registryConfig;
-        this.registry = registryConfig.getRegistryByCode(registryConfig);
+        configuration.setRegistryConfig(registryConfig);
+        this.registry = registryConfig.getRegistryByCode(registryConfig.getRegistryCode());
+        return this;
+    }
+
+    /**
+     * 配置注册中心
+     *
+     * @param registryConfig
+     * @return this
+     */
+    public RpcBootstrap registry() {
+        RegistryConfig registryConfig = configuration.getRegistryConfig();
+        this.registry = registryConfig.getRegistryByCode(registryConfig.getRegistryCode());
+        return this;
+    }
+
+    /**
+     * 配置负债均衡
+     *
+     * @param loadBalancer 负债均衡器
+     * @return this
+     */
+    public RpcBootstrap loadBalancer(LoadBalancer loadBalancer) {
+        configuration.setLoadBalancer(loadBalancer);
         return this;
     }
 
@@ -109,8 +127,8 @@ public class RpcBootstrap {
      * @return
      */
     public RpcBootstrap serialize(String serializeMode) {
+        configuration.setSerializeMode(serializeMode);
         if (serializeMode != null) {
-            SERIALIZE_MODE = serializeMode;
             log.debug("配置了序列化方式为 = {}", serializeMode);
         }
         return this;
@@ -126,7 +144,6 @@ public class RpcBootstrap {
 
     public RpcBootstrap compress(String compressMode) {
         if (compressMode != null) {
-            COMPRESS_MODE = compressMode;
             log.debug("配置了压缩方式为 = {}", compressMode);
         }
         return this;
@@ -167,7 +184,7 @@ public class RpcBootstrap {
                         }
                     });
             // 绑定端口
-            ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
+            ChannelFuture channelFuture = serverBootstrap.bind(configuration.getPort()).sync();
             log.debug("项目启动完成...");
             // 接受客户端发送的消息
             channelFuture.channel().closeFuture().sync();
@@ -201,7 +218,6 @@ public class RpcBootstrap {
     public RpcBootstrap publish(ServiceConfig<?> service) {
         // 使用注册中心 发布对应接口
         registry.publish(service);
-
         // 1. 当服务调用方, 通过接口, 方法名, 具体的方法参数 发起调用, 提供方怎么知道使用哪个实现
         // (1) new 一个  (2) 通过 spring beanFactory.getBean(Class)   (3) 自己维护映射关系
         SERVICE_LIST.put(service.getInterface().getName(), service);
@@ -324,7 +340,6 @@ public class RpcBootstrap {
         // 在这个方法里我们是香可以拿到相关的配置项-注册中心
         // 配置reference，将来调用get方法时，方便生成代理对象
         reference.setRegistry(registry);
-        RpcBootstrap.LOAD_BALANCE = new RoundRobinLoadBalance();
 
         // 开启这个服务的心跳检测
         System.out.println("开始心跳检测....");
@@ -335,4 +350,12 @@ public class RpcBootstrap {
 
 //--------------------------------服务调用方的 api-----------------------------------------
 
+    /**
+     * 获取全局配置
+     *
+     * @return Configuration
+     */
+    public Configuration getConfiguration() {
+        return configuration;
+    }
 }

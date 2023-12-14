@@ -38,8 +38,8 @@ public class HeartbeatDetector {
         List<InetSocketAddress> addressList = registry.lookup(ServiceName);
         for (InetSocketAddress address : addressList) {
             try {
-                // 拿到连接
                 if (RpcBootstrap.CHANNEL_CACHE.containsKey(address)) {
+                    // 拿到连接
                     Channel channel = ConsumerNettyBootstrapInitializer.getBootstrap().connect(address).sync().channel();
                     RpcBootstrap.CHANNEL_CACHE.put(address, channel);
                 }
@@ -75,9 +75,9 @@ public class HeartbeatDetector {
                     RpcRequest heartbeat = RpcRequest.builder()
                             .requestId(requestId)
                             .requestType(RequestEnum.HEART_BEAT.getId())
-                            .compressType(CompressEnum.getCodeByDesc(RpcBootstrap.COMPRESS_MODE))
+                            .compressType(CompressEnum.getCodeByDesc(RpcBootstrap.getInstance().getConfiguration().getCompressMode()))
                             .timestamp(start)
-                            .serializeType(SerializeEnum.getCodeByDesc(RpcBootstrap.SERIALIZE_MODE)).build();
+                            .serializeType(SerializeEnum.getCodeByDesc(RpcBootstrap.getInstance().getConfiguration().getSerializeMode())).build();
 
                     CompletableFuture<Object> heartbeatFuture = new CompletableFuture<>();
                     RpcBootstrap.PENDING_REQUEST.put(requestId, heartbeatFuture);
@@ -103,7 +103,7 @@ public class HeartbeatDetector {
                             RpcBootstrap.CHANNEL_CACHE.remove(entry.getKey());
                         }
                         try {
-                            Thread.sleep(10 * (3 - tryTimes));
+                            Thread.sleep(10L * (3 - tryTimes));
                         } catch (InterruptedException ex) {
                             throw new RuntimeException(ex);
                         }

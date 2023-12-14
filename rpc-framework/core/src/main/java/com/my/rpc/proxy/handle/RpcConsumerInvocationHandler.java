@@ -10,7 +10,6 @@ import com.my.rpc.exception.DiscoveryException;
 import com.my.rpc.exception.NetException;
 import com.my.rpc.transport.message.RequestPayload;
 import com.my.rpc.transport.message.RpcRequest;
-import com.my.rpc.utils.SnowflakeIdGenerator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +55,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         // 获取当前配置的负载均衡器
-        InetSocketAddress address = RpcBootstrap.LOAD_BALANCE.selectAddress(interfaceRef.getName());
+        InetSocketAddress address = RpcBootstrap.getInstance().getConfiguration().getLoadBalancer().selectAddress(interfaceRef.getName());
 
         // 获取一个 channel
         Channel channel = getAvailableChannel(address);
@@ -68,13 +67,12 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .parametersType(method.getParameterTypes())
                 .parametersValue(args)
                 .returnType(method.getReturnType()).build();
-        SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator(1, 2);
-        long requestId = snowflakeIdGenerator.getId();
+        long requestId = RpcBootstrap.getInstance().getConfiguration().getSnowflakeIdGenerator().getId();
         RpcRequest rpcRequest = RpcRequest.builder()
                 .requestId(requestId)
                 .requestType(RequestEnum.REQUEST.getId())
-                .compressType(CompressEnum.getCodeByDesc(RpcBootstrap.COMPRESS_MODE))
-                .serializeType(SerializeEnum.getCodeByDesc(RpcBootstrap.SERIALIZE_MODE))
+                .compressType(CompressEnum.getCodeByDesc(RpcBootstrap.getInstance().getConfiguration().getCompressMode()))
+                .serializeType(SerializeEnum.getCodeByDesc(RpcBootstrap.getInstance().getConfiguration().getSerializeMode()))
                 .timestamp(new Date().getTime())
                 .requestPayload(requestPayload).build();
 

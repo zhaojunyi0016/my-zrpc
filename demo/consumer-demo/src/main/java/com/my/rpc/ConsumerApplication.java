@@ -1,6 +1,5 @@
 package com.my.rpc;
 
-import com.my.rpc.discovery.RegistryConfig;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,10 +17,7 @@ public class ConsumerApplication {
         reference.setInterfaceRef(SayHelloRpc.class);
 
         RpcBootstrap.getInstance()
-                .application("rpc-consumer")
-                .registry(new RegistryConfig("zookeeper", "127.0.0.1:2181"))
-                .serialize("hessian")
-                .compress("gzip")
+                .registry()
                 .reference(reference);
 
 
@@ -38,7 +34,5 @@ public class ConsumerApplication {
             String hello = helLoYrpc.sayHi("我的哥");
             log.debug("hello ==={}", hello);
         }
-
-
     }
 }

@@ -4,12 +4,12 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 /**
- * 负载均衡抽象接口
+ * 负载均衡器
  *
  * @Author : Williams
  * Date : 2023/12/11 16:04
  */
-public interface LoadBalance {
+public interface LoadBalancer {
 
 
     /**

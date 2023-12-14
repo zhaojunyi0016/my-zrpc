@@ -1,5 +1,7 @@
 package com.my.rpc.discovery;
 
+import com.my.rpc.discovery.impl.EurekaRegistry;
+import com.my.rpc.discovery.impl.NacosRegistry;
 import com.my.rpc.discovery.impl.ZookeeperRegistry;
 import com.my.rpc.exception.RegistryException;
 import lombok.Data;
@@ -33,14 +35,14 @@ public class RegistryConfig {
      * @param registryCode 注册中心类型
      * @return 具体的注册中心
      */
-    public Registry getRegistryByCode(RegistryConfig registryCode) {
-        switch (registryCode.getRegistryCode()) {
+    public Registry getRegistryByCode(String registryCode) {
+        switch (registryCode) {
             case "zookeeper":
                 return new ZookeeperRegistry();
             case "nacos":
-                return new ZookeeperRegistry();
+                return new NacosRegistry();
             case "eureka":
-                return new ZookeeperRegistry();
+                return new EurekaRegistry();
             default:
                 throw new RegistryException("未找到注册中心");
         }

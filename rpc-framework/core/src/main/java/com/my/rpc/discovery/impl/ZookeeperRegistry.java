@@ -42,7 +42,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
 
         // 服务提供方的端口, 一般自己设定
         // ip 需要局域网 ip, 不是 127.0.0.1. 也不是 ipv6
-        String node = parentNode + "/" + NetUtil.getIp() + ":" + RpcBootstrap.port;
+        String node = parentNode + "/" + NetUtil.getIp() + ":" + RpcBootstrap.getInstance().getConfiguration().getPort();
         zookeeperNode = new ZookeeperNode(node, null);
         ZookeeperUtil.createNode(zooKeeper, null, CreateMode.EPHEMERAL, zookeeperNode);
     }

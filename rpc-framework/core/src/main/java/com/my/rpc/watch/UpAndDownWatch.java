@@ -3,7 +3,7 @@ package com.my.rpc.watch;
 import com.my.rpc.ConsumerNettyBootstrapInitializer;
 import com.my.rpc.RpcBootstrap;
 import com.my.rpc.discovery.Registry;
-import com.my.rpc.loadbalance.LoadBalance;
+import com.my.rpc.loadbalance.LoadBalancer;
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.WatchedEvent;
@@ -54,7 +54,7 @@ public class UpAndDownWatch implements Watcher {
             }
 
             // 获取负债均衡器, 进行 loadbalance
-            LoadBalance loadBalance = RpcBootstrap.LOAD_BALANCE;
+            LoadBalancer loadBalance = RpcBootstrap.getInstance().getConfiguration().getLoadBalancer();
             loadBalance.reBalance(serviceName, addressList);
         }
     }

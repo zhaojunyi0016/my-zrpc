@@ -7,8 +7,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 服务消费方 bootstrap 单例
- * TODO 思考怎么对 bootstrap 拓展
+ * 获取一个 bootstrap 单例
  *
  * @Author : Williams
  * Date : 2023/12/7 14:52

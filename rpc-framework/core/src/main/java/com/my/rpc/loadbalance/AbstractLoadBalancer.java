@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Author : Williams
  * Date : 2023/12/11 17:05
  */
-public abstract class AbstractLoadBalancer implements LoadBalance {
+public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     // 一个接口 匹配一个 selector
     private final Map<String, Selector> selectorCache = new ConcurrentHashMap<>();

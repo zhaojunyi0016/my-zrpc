@@ -12,7 +12,6 @@ public class Constant {
     // zk默认链接
     public static final int DEFAULT_ZK_TIMEOUT = 10000;
 
-
     // 顶级目录
     public static final String BASE_PATH = "/myrpc-metaData";
 

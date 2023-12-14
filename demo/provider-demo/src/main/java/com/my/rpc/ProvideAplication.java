@@ -1,6 +1,5 @@
 package com.my.rpc;
 
-import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.impl.HelloRpcImpl;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ProvideAplication {
-
 
     public static void main(String[] args) {
         log.debug("provide start....");
@@ -30,11 +28,8 @@ public class ProvideAplication {
          * 发布服务
          */
         RpcBootstrap.getInstance()
-                .application("rpc-provide")
                 // 配置注册中心
-                .registry(new RegistryConfig("zookeeper", "127.0.0.1:2181"))
-//                 发布服务
-//                .publish(service)
+                .registry()
                 // 扫包发布服务
                 .scan("com.my.rpc")
                 // 启动服务

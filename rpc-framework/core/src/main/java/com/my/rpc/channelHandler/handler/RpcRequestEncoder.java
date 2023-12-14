@@ -1,8 +1,6 @@
 package com.my.rpc.channelHandler.handler;
 
 import com.my.rpc.RpcBootstrap;
-import com.my.rpc.compress.Compressor;
-import com.my.rpc.compress.CompressorFactory;
 import com.my.rpc.serialize.Serializer;
 import com.my.rpc.serialize.SerializerFactory;
 import com.my.rpc.transport.message.MessageFormatConstant;
@@ -55,7 +53,7 @@ public class RpcRequestEncoder extends MessageToByteEncoder<RpcRequest> {
         byteBuf.writeLong(rpcRequest.getTimestamp());
 
         // 序列化
-        Serializer serializer = SerializerFactory.getSerializer(RpcBootstrap.SERIALIZE_MODE);
+        Serializer serializer = SerializerFactory.getSerializer(RpcBootstrap.getInstance().getConfiguration().getSerializeMode());
         byte[] bodyBytes = serializer.serialize(rpcRequest.getRequestPayload());
 
         // 压缩

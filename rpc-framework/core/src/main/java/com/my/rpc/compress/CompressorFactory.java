@@ -26,4 +26,14 @@ public class CompressorFactory {
         }
         throw new SerializerException("未匹配到对应压缩方式");
     }
+
+    /**
+     * 将压缩器添加进工厂
+     *
+     * @param compressMode 压缩方式
+     * @param compressor   压缩器
+     */
+    public void addCompressor(String compressMode, Compressor compressor) {
+        compressorMap.put(compressMode, compressor);
+    }
 }

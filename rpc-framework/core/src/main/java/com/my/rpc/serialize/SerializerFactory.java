@@ -32,4 +32,14 @@ public class SerializerFactory {
         }
         throw new SerializerException("未匹配到对应序列化方式");
     }
+
+    /**
+     * 将序列化器 添加进工厂
+     *
+     * @param serializerMode 序列化模式
+     * @param serializer     序列化器
+     */
+    public static void addSerializer(String serializerMode, Serializer serializer) {
+        serializerMap.put(serializerMode, serializer);
+    }
 }

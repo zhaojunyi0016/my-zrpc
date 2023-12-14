@@ -1,11 +1,5 @@
-package com.my.rpc;
+package com.my.rpc.config;
 
-import com.my.rpc.discovery.RegistryConfig;
-import com.my.rpc.loadbalance.LoadBalancer;
-import com.my.rpc.loadbalance.impl.RoundRobinLoadBalance;
-import com.my.rpc.utils.SnowflakeIdGenerator;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -19,60 +13,21 @@ import javax.xml.xpath.XPathFactory;
 import java.io.InputStream;
 
 /**
- * 全局的配置类 , 代码配置->xml 配置->spi 配置-> 默认项
+ * xml解析器
  *
  * @Author : Williams
- * Date : 2023/12/13 15:58
+ * Date : 2023/12/14 14:22
  */
 @Slf4j
-@Getter
-@Setter
-public class Configuration {
+public class XmlResolver {
 
-    // 端口号
-    private int port = 8090;
-
-
-    // app name
-    private String appName = "default";
-
-
-    // 配置 - 注册中心
-    private RegistryConfig registryConfig = new RegistryConfig("zookeeper", "127.0.0.1:2181");
-
-
-    // 配置 -负载均衡策略 -> 默认轮训
-    private LoadBalancer loadBalancer = new RoundRobinLoadBalance();
-
-
-    // 配置 - 序列化方式
-    private String serializeMode = "jdk";
-
-
-    // 配置 - 压缩协议
-    private String compressMode = "gzip";
-
-
-    // id 生成器
-    private SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator(1, 2);
-
-
-    // 读 xml
-
-    public Configuration() {
-        loadFromXml(this);
-    }
-
-    public static void main(String[] args) {
-        Configuration configuration = new Configuration();
-    }
 
     /**
      * 加载 xml 配置
      *
      * @param configuration 配置实例
      */
-    private void loadFromXml(Configuration configuration) {
+    public static void loadFromXml(Configuration configuration) {
         // 1. 创建一个 document
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -85,12 +40,12 @@ public class Configuration {
 
             //  解析序列化方式
             String serializer = parseString(doc, xPath, "/configuration/serializer");
-            this.setSerializeMode(serializer);
+            configuration.setSerializeMode(serializer);
 
             // 解析 port
             String port = parseString(doc, xPath, "/configuration/port");
             if (port != null && port.length() > 0) {
-                this.setPort(Integer.parseInt(port));
+                configuration.setPort(Integer.parseInt(port));
             }
         } catch (Exception e) {
             log.error("An exception occurred while parsing the xml configuration file,   error = {}", e);
@@ -106,7 +61,7 @@ public class Configuration {
      * @param expression xml节点的表达式
      * @return 配置的实例
      */
-    private String parseString(Document doc, XPath xPath, String expression) {
+    private static String parseString(Document doc, XPath xPath, String expression) {
         try {
             XPathExpression expr = xPath.compile(expression);
             Node evaluate = (Node) expr.evaluate(doc, XPathConstants.NODE);
@@ -126,7 +81,7 @@ public class Configuration {
      * @param attributeName 节点名称
      * @return 配置的实例
      */
-    private String parseString(Document doc, XPath xPath, String expression, String attributeName) {
+    private static String parseString(Document doc, XPath xPath, String expression, String attributeName) {
         try {
             XPathExpression expr = xPath.compile(expression);
             Node evaluate = (Node) expr.evaluate(doc, XPathConstants.NODE);
@@ -150,7 +105,7 @@ public class Configuration {
      * @param param      参数
      * @return 配置的实例
      */
-    private <T> T parseObject(Document doc, XPath xPath, String expression, Class<?>[] paramType, Object... param) {
+    private static <T> T parseObject(Document doc, XPath xPath, String expression, Class<?>[] paramType, Object... param) {
         try {
             XPathExpression expr = xPath.compile(expression);
             Node evaluate = (Node) expr.evaluate(doc, XPathConstants.NODE);
@@ -170,5 +125,4 @@ public class Configuration {
         }
         return null;
     }
-
 }

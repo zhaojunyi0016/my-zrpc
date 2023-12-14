@@ -18,8 +18,6 @@ public class ConsumerNettyBootstrapInitializer {
     // 启动 netty 客户端引导类
     private static Bootstrap bootstrap = new Bootstrap();
 
-
-    // 初始化
     static {
         // 定义线程池 eventLoopGroup
         NioEventLoopGroup group = new NioEventLoopGroup();

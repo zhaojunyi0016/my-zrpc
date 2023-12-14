@@ -1,4 +1,4 @@
-package com.my.rpc.core;
+package com.my.rpc.heartbeat;
 
 import com.my.rpc.ConsumerNettyBootstrapInitializer;
 import com.my.rpc.RpcBootstrap;

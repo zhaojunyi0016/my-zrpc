@@ -5,7 +5,7 @@ import com.my.rpc.channelHandler.handler.MethodCallHandler;
 import com.my.rpc.channelHandler.handler.RpcRequestDeEncoder;
 import com.my.rpc.channelHandler.handler.RpcResponseEncoder;
 import com.my.rpc.config.Configuration;
-import com.my.rpc.core.HeartbeatDetector;
+import com.my.rpc.heartbeat.HeartbeatDetector;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
 import com.my.rpc.loadbalance.LoadBalancer;

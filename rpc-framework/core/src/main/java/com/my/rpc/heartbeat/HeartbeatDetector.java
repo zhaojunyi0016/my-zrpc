@@ -67,7 +67,6 @@ public class HeartbeatDetector {
                     Channel channel = entry.getValue();
                     InetSocketAddress address = entry.getKey();
 
-
                     // 构建一个心跳请求
                     long start = System.currentTimeMillis();
                     SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator(1, 2);
@@ -92,7 +91,7 @@ public class HeartbeatDetector {
 
                     Long endTime = 0L;
                     try {
-                        Object o = heartbeatFuture.get(1, TimeUnit.SECONDS);
+                        heartbeatFuture.get(1, TimeUnit.SECONDS);
                         endTime = System.currentTimeMillis();
                     } catch (InterruptedException | ExecutionException | TimeoutException e) {
                         log.debug("和服务器 [{}] 连接响应时间超过配置的1秒,正在进行第{}次重试", entry.getKey(), 3 - tryTimes);

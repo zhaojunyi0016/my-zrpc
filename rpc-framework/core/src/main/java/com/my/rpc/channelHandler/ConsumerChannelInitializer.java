@@ -1,6 +1,6 @@
 package com.my.rpc.channelHandler;
 
-import com.my.rpc.channelHandler.handler.DemoSimpleChannelInboundHandler;
+import com.my.rpc.channelHandler.handler.CompleteSimpleChannelInboundHandler;
 import com.my.rpc.channelHandler.handler.RpcRequestEncoder;
 import com.my.rpc.channelHandler.handler.RpcResponseDeEncoder;
 import io.netty.channel.ChannelInitializer;
@@ -25,6 +25,6 @@ public class ConsumerChannelInitializer extends ChannelInitializer<SocketChannel
                 // 对响应解码
                 .addLast(new RpcResponseDeEncoder())
                 // 处理结果
-                .addLast(new DemoSimpleChannelInboundHandler());
+                .addLast(new CompleteSimpleChannelInboundHandler());
     }
 }

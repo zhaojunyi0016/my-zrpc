@@ -10,6 +10,8 @@ import com.my.rpc.enums.SerializeEnum;
 import com.my.rpc.exception.DiscoveryException;
 import com.my.rpc.exception.NetException;
 import com.my.rpc.exception.RpcCallException;
+import com.my.rpc.protection.breaker.Breaker;
+import com.my.rpc.protection.breaker.impl.CircuitBreaker;
 import com.my.rpc.transport.message.RequestPayload;
 import com.my.rpc.transport.message.RpcRequest;
 import io.netty.channel.Channel;
@@ -20,10 +22,11 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * 封装了客户端通信的基础逻辑, 每一个代理对象的远程调用过程都封在 invoke()
@@ -74,6 +77,24 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         // 获取当前配置的负载均衡器
         InetSocketAddress address = RpcBootstrap.getInstance().getConfiguration().getLoadBalancer().selectAddress(interfaceRef.getName());
 
+        // 获取断路器
+        Breaker breaker = RpcBootstrap.getInstance().getConfiguration().everyIpBreaker.get(address);
+        if (breaker == null) {
+            breaker = new CircuitBreaker(3, 50f);
+            RpcBootstrap.getInstance().getConfiguration().everyIpBreaker.put(address, breaker);
+        }
+        if (breaker.isBreak()) {
+            log.debug("熔断器打开,不继续发起 RPC 调用");
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    RpcBootstrap.getInstance().getConfiguration().everyIpBreaker.get(address).reset();
+                }
+            }, 5000);
+            throw new RpcCallException("当前熔断器已经开启, 无法继续发送请求");
+        }
+
+
         // 获取一个 channel
         Channel channel = getAvailableChannel(address);
 
@@ -108,8 +129,12 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
             try {
                 Object result = resultFuture.get(1, TimeUnit.SECONDS);
                 log.debug("请求Id={}, 发起调用获取最终结果 = [{}]", rpcRequest.getRequestId(), result);
+                // 拿到了结果 说明是正常响应, 记录一个成功的请求
+                breaker.recordRequest();
                 return result;
             } catch (Exception e) {
+                // 记录一个失败的请求
+                breaker.recordErrorRequest();
                 // 重试次数 -1
                 tryTimes--;
                 try {
@@ -180,13 +205,12 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .parametersType(method.getParameterTypes())
                 .parametersValue(args)
                 .returnType(method.getReturnType()).build();
-        RpcRequest rpcRequest = RpcRequest.builder()
+        return RpcRequest.builder()
                 .requestId(requestId)
                 .requestType(RequestEnum.REQUEST.getId())
                 .compressType(CompressEnum.getCodeByDesc(RpcBootstrap.getInstance().getConfiguration().getCompressMode()))
                 .serializeType(SerializeEnum.getCodeByDesc(RpcBootstrap.getInstance().getConfiguration().getSerializeMode()))
                 .timestamp(new Date().getTime())
                 .requestPayload(requestPayload).build();
-        return rpcRequest;
     }
 }

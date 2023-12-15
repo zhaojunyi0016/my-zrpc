@@ -30,9 +30,17 @@ public class ConsumerApplication {
          * 4. 发送请求, 携带一些信息(接口名, 参数列表, 方法名字),  获得结果
          */
         SayHelloRpc helLoYrpc = reference.get();
-        for (int i = 0; i < 1; i++) {
-            String hello = helLoYrpc.sayHi("我的哥");
-            log.debug("hello ==={}", hello);
+        for (int i = 0; i < 10; i++) {
+            try {
+                if (i == 9) {
+//                    Thread.sleep(2000L);
+                }
+                String hello = helLoYrpc.sayHi("我的哥");
+                log.debug("hello ==={}", hello);
+            } catch (Exception e) {
+            }
         }
     }
+
+
 }

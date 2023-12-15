@@ -4,6 +4,9 @@ import com.my.rpc.RpcBootstrap;
 import com.my.rpc.ServiceConfig;
 import com.my.rpc.enums.RequestEnum;
 import com.my.rpc.enums.ResponseEnum;
+import com.my.rpc.exception.RpcCallException;
+import com.my.rpc.protection.retelimiter.ReteLimiter;
+import com.my.rpc.protection.retelimiter.impl.TokenBuketRateLimiter;
 import com.my.rpc.transport.message.RequestPayload;
 import com.my.rpc.transport.message.RpcRequest;
 import com.my.rpc.transport.message.RpcResponse;
@@ -13,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.SocketAddress;
 import java.util.Map;
 
 /**
@@ -23,36 +27,47 @@ import java.util.Map;
 public class MethodCallHandler extends SimpleChannelInboundHandler<RpcRequest> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) throws Exception {
-        // 1. 获取负载内容
-        RequestPayload requestPayload = rpcRequest.getRequestPayload();
-        // 2. 根据负载内容进行方法调用
-        if (rpcRequest.getRequestType() == RequestEnum.REQUEST.getId()) {
-            Object result = callTargetMethod(requestPayload, rpcRequest.getRequestId());
-            log.debug("服务端对请求 id ={} 的调用结束, 返回结果为 =[{}] ", rpcRequest.getRequestId(), result);
+        RpcResponse response = RpcResponse.builder()
+                .requestId(rpcRequest.getRequestId())
+                .compressType(rpcRequest.getCompressType())
+                .serializeType(rpcRequest.getSerializeType()).build();
 
-            // 3. 封装响应报文
-            RpcResponse response = RpcResponse.builder()
-                    .requestId(rpcRequest.getRequestId())
-                    .compressType(rpcRequest.getCompressType())
-                    .serializeType(rpcRequest.getSerializeType())
-                    .code(ResponseEnum.SUCCESS.getCode())
-                    .body(result).build();
-
-            // 4. 写出结果, 交给下一个 pipeline
-            ctx.channel().writeAndFlush(response);
-        } else if (rpcRequest.getRequestType() == RequestEnum.HEART_BEAT.getId()) {
+        // 心跳不限流
+        if (rpcRequest.getRequestType() == RequestEnum.HEART_BEAT.getId()) {
             log.debug("服务端..响应心跳请求");
-            // 3. 封装响应报文, 心跳没有 body
-            RpcResponse response = RpcResponse.builder()
-                    .requestId(rpcRequest.getRequestId())
-                    .compressType(rpcRequest.getCompressType())
-                    .serializeType(rpcRequest.getSerializeType())
-                    .code(ResponseEnum.HEARTBEAT.getCode()).build();
-
-            // 4. 写出结果, 交给下一个 pipeline
+            // 封装响应报文, 心跳没有 body
+            response.setCode(ResponseEnum.HEARTBEAT.getCode());
             ctx.channel().writeAndFlush(response);
         }
 
+
+        // 限流器
+        SocketAddress socketAddress = ctx.channel().remoteAddress();
+        ReteLimiter ipRateLimiter = RpcBootstrap.getInstance().getConfiguration().everyIpRateLimiter.get(socketAddress);
+        if (ipRateLimiter == null) {
+            ipRateLimiter = new TokenBuketRateLimiter(3, 100);
+            RpcBootstrap.getInstance().getConfiguration().everyIpRateLimiter.put(socketAddress, ipRateLimiter);
+        }
+        if (!ipRateLimiter.allowRequest()) {
+            log.warn("服务器限流达到最大限度, 拒绝访问");
+            response.setCode(ResponseEnum.RATE_LIMIT.getCode());
+        } else if (rpcRequest.getRequestType() == RequestEnum.REQUEST.getId()) {
+            // 1. 获取负载内容
+            RequestPayload requestPayload = rpcRequest.getRequestPayload();
+            // 2. 根据负载内容进行方法调用
+            try {
+                Object result = callTargetMethod(requestPayload, rpcRequest.getRequestId());
+                log.debug("服务端对请求 id ={} 的调用结束, 返回结果为 =[{}] ", rpcRequest.getRequestId(), result);
+                // 封装成功响应报文
+                response.setCode(ResponseEnum.SUCCESS.getCode());
+                response.setBody(result);
+            } catch (RpcCallException e) {
+                // 封装失败响应报文
+                response.setCode(ResponseEnum.FAIL.getCode());
+            }
+        }
+        // 4. 写出结果, 交给下一个 pipeline
+        ctx.channel().writeAndFlush(response);
     }
 
 
@@ -86,7 +101,7 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<RpcRequest> {
             result = method.invoke(interfaceImpl, parametersValue);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             log.error("反射调用方法 {} 失败,  requestId ={} error ={}", methodName, requestId, e);
-            throw new RuntimeException(e);
+            throw new RpcCallException(e);
         }
         return result;
     }

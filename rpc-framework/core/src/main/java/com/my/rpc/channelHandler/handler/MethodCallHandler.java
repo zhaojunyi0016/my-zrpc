@@ -5,6 +5,7 @@ import com.my.rpc.ServiceConfig;
 import com.my.rpc.enums.RequestEnum;
 import com.my.rpc.enums.ResponseEnum;
 import com.my.rpc.exception.RpcCallException;
+import com.my.rpc.hook.ShutdownHolder;
 import com.my.rpc.protection.retelimiter.ReteLimiter;
 import com.my.rpc.protection.retelimiter.impl.TokenBuketRateLimiter;
 import com.my.rpc.transport.message.RequestPayload;
@@ -32,20 +33,30 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<RpcRequest> {
                 .compressType(rpcRequest.getCompressType())
                 .serializeType(rpcRequest.getSerializeType()).build();
 
+        // 挡板开启直接响应
+        if (ShutdownHolder.BAFFLE.get()) {
+            response.setCode(ResponseEnum.SERVER_CLOSING.getCode());
+            ctx.channel().writeAndFlush(response);
+            return;
+        }
+
+
         // 心跳不限流
         if (rpcRequest.getRequestType() == RequestEnum.HEART_BEAT.getId()) {
             log.debug("服务端..响应心跳请求");
             // 封装响应报文, 心跳没有 body
             response.setCode(ResponseEnum.HEARTBEAT.getCode());
             ctx.channel().writeAndFlush(response);
+            return;
         }
 
+        ShutdownHolder.REQUEST_COUNTER.increment();
 
         // 限流器
         SocketAddress socketAddress = ctx.channel().remoteAddress();
         ReteLimiter ipRateLimiter = RpcBootstrap.getInstance().getConfiguration().everyIpRateLimiter.get(socketAddress);
         if (ipRateLimiter == null) {
-            ipRateLimiter = new TokenBuketRateLimiter(3, 100);
+            ipRateLimiter = new TokenBuketRateLimiter(500, 100);
             RpcBootstrap.getInstance().getConfiguration().everyIpRateLimiter.put(socketAddress, ipRateLimiter);
         }
         if (!ipRateLimiter.allowRequest()) {
@@ -68,6 +79,8 @@ public class MethodCallHandler extends SimpleChannelInboundHandler<RpcRequest> {
         }
         // 4. 写出结果, 交给下一个 pipeline
         ctx.channel().writeAndFlush(response);
+
+        ShutdownHolder.REQUEST_COUNTER.decrement();
     }
 
 

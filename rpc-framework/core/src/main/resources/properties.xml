@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
     <serializer>jdk</serializer>
-    <port>8092</port>
+    <por1t>8092</por1t>
 </configuration>

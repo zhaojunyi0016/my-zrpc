@@ -40,7 +40,7 @@ public class RpcRequestDeEncoder extends LengthFieldBasedFrameDecoder {
                 MessageFormatConstant.MAGIC.length + MessageFormatConstant.VERSION_LENGTH + MessageFormatConstant.HEADER_FIELD_LENGTH,
                 // 长度字段的长度
                 MessageFormatConstant.FULL_FIELD_LENGTH,
-                // TODO 负载的适配长度
+                // 负载的适配长度
                 -(MessageFormatConstant.MAGIC.length + MessageFormatConstant.VERSION_LENGTH + MessageFormatConstant.HEADER_FIELD_LENGTH + MessageFormatConstant.FULL_FIELD_LENGTH),
                 0
         );
@@ -48,7 +48,6 @@ public class RpcRequestDeEncoder extends LengthFieldBasedFrameDecoder {
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
-        // TODO
         Thread.sleep(50);
         // 解析成字节数组
         Object decode = super.decode(ctx, in);

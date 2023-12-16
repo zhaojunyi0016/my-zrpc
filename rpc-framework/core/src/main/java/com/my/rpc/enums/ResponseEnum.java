@@ -14,6 +14,7 @@ public enum ResponseEnum {
     RATE_LIMIT((byte) 31, "服务被限流"),
     RESOURCE_NOT_FOUND((byte) 45, "请求的资源不存在"),
     FAIL((byte) 50, "调用方法发生异常"),
+    SERVER_CLOSING((byte) 51, "服务端正在关闭中...."),
     ;
 
     private final byte code;

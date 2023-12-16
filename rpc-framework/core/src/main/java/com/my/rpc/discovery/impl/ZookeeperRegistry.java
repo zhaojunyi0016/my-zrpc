@@ -50,7 +50,6 @@ public class ZookeeperRegistry extends AbstractRegistry {
 
     /**
      * 拉取服务列表
-     * TODO 每次都需要重新拉取服务列表吗, 本地缓存+watch 机制
      *
      * @param serviceName 方法的全限定名
      * @return
@@ -60,7 +59,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
         // 找到服务对应的节点
         String serviceNodePath = Constant.PROVIDE_PATH + "/" + serviceName;
 
-        // 从 zk 中获取他的子节点   如果children 有问题, watch机制干活 TODO
+        // 从 zk 中获取他的子节点   如果children 有问题, watch机制干活
         List<String> children = ZookeeperUtil.getChildren(zooKeeper, serviceNodePath, new UpAndDownWatch());
 
         // 获取了所有的可用的服务列表

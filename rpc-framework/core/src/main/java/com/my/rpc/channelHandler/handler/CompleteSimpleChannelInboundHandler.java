@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.SocketAddress;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * 测试消费端的 处理消息的入站handler
@@ -33,22 +34,34 @@ public class CompleteSimpleChannelInboundHandler extends SimpleChannelInboundHan
         if (code == ResponseEnum.FAIL.getCode()) {
             breaker.recordErrorRequest();
             completableFuture.complete(null);
-            log.debug("requestId {}, 返回错误的结果, 响应码 ={}", response.getRequestId(), response.getCode());
+            log.warn("requestId {}, 返回错误的结果, 响应码 ={}", response.getRequestId(), response.getCode());
             throw new RpcRespException(ResponseEnum.FAIL.getDesc(), code);
         } else if (code == ResponseEnum.RATE_LIMIT.getCode()) {
             breaker.recordErrorRequest();
             completableFuture.complete(null);
-            log.debug("requestId {}, 被限流, 响应码 ={}", response.getRequestId(), response.getCode());
+            log.warn("requestId {}, 被限流, 响应码 ={}", response.getRequestId(), response.getCode());
             throw new RpcRespException(ResponseEnum.RATE_LIMIT.getDesc(), code);
         } else if (code == ResponseEnum.RESOURCE_NOT_FOUND.getCode()) {
             breaker.recordErrorRequest();
             completableFuture.complete(null);
-            log.debug("requestId {}, 找不到资源, 响应码 ={}", response.getRequestId(), response.getCode());
+            log.warn("requestId {}, 找不到资源, 响应码 ={}", response.getRequestId(), response.getCode());
             throw new RpcRespException(ResponseEnum.RESOURCE_NOT_FOUND.getDesc(), code);
         } else if (code == ResponseEnum.SUCCESS.getCode() || code == ResponseEnum.HEARTBEAT.getCode()) {
             final Object returnValue = response.getBody() == null ? 1 : response.getBody();
             log.debug("收到服务端的响应结果, 并且对之complete {}", returnValue);
             completableFuture.complete(returnValue);
+        } else if (code == ResponseEnum.SERVER_CLOSING.getCode()) {
+            final Object returnValue = response.getBody() == null ? 1 : response.getBody();
+            log.warn("收到服务端的响应结果, 并且对之complete {}", returnValue);
+            completableFuture.complete(returnValue);
+            // 移除掉
+            RpcBootstrap.CHANNEL_CACHE.remove(socketAddress);
+
+            // TODO reBalance
+//            RpcBootstrap.getInstance().getConfiguration().getLoadBalancer()
+//                    .reBalance(null,RpcBootstrap.CHANNEL_CACHE.keySet().stream().collect(Collectors.toList()));
+            // 抛异常重试, 调用其他可用节点
+            throw new RpcRespException(ResponseEnum.SERVER_CLOSING.getDesc(), code);
         }
     }
 }

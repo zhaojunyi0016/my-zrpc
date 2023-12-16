@@ -45,7 +45,7 @@ public class RpcResponseDeEncoder extends LengthFieldBasedFrameDecoder {
                 MessageFormatConstant.MAGIC.length + MessageFormatConstant.VERSION_LENGTH + MessageFormatConstant.HEADER_FIELD_LENGTH,
                 // 长度字段的长度
                 MessageFormatConstant.FULL_FIELD_LENGTH,
-                // TODO 负载的适配长度
+                // 负载的适配长度
                 -(MessageFormatConstant.MAGIC.length + MessageFormatConstant.VERSION_LENGTH + MessageFormatConstant.HEADER_FIELD_LENGTH + MessageFormatConstant.FULL_FIELD_LENGTH),
                 0
         );

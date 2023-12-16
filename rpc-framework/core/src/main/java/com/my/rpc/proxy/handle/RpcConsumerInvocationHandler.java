@@ -80,7 +80,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         // 获取断路器
         Breaker breaker = RpcBootstrap.getInstance().getConfiguration().everyIpBreaker.get(address);
         if (breaker == null) {
-            breaker = new CircuitBreaker(3, 50f);
+            breaker = new CircuitBreaker(50, 50f);
             RpcBootstrap.getInstance().getConfiguration().everyIpBreaker.put(address, breaker);
         }
         if (breaker.isBreak()) {
@@ -127,6 +127,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         }
         while (true) {
             try {
+                Thread.sleep(7000L);
                 Object result = resultFuture.get(1, TimeUnit.SECONDS);
                 log.debug("请求Id={}, 发起调用获取最终结果 = [{}]", rpcRequest.getRequestId(), result);
                 // 拿到了结果 说明是正常响应, 记录一个成功的请求

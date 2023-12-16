@@ -8,6 +8,7 @@ import com.my.rpc.config.Configuration;
 import com.my.rpc.heartbeat.HeartbeatDetector;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
+import com.my.rpc.hook.RpcShutdownHook;
 import com.my.rpc.loadbalance.LoadBalancer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -160,6 +161,8 @@ public class RpcBootstrap {
      * 启动netty服务
      */
     public RpcBootstrap start() {
+        // 注册应用关闭钩子函数
+        Runtime.getRuntime().addShutdownHook(new RpcShutdownHook());
         // TODO 查看序列化 负债均衡 压缩 是否为空, 空的话说明没有配置 xml, 没有配置 spi, 没有在启动引导的时候使用代码, 走默认配置实例化
         log.debug("项目启动中....");
         // 1. 创建 bossGroup, 只负责处理请求 IO , 之后会将请求分发到 workGroup
@@ -188,6 +191,7 @@ public class RpcBootstrap {
             // 绑定端口
             ChannelFuture channelFuture = serverBootstrap.bind(configuration.getPort()).sync();
             log.debug("项目启动完成...");
+            System.out.println("项目启动完成");
             // 接受客户端发送的消息
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {
@@ -195,10 +199,6 @@ public class RpcBootstrap {
         } finally {
             try {
                 bossGroup.shutdownGracefully().sync();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            try {
                 workGroup.shutdownGracefully().sync();
             } catch (InterruptedException e) {
                 e.printStackTrace();

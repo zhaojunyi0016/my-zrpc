@@ -17,13 +17,14 @@ public class TestController {
     @RpcReference
     private SayHelloRpc sayHelloRpc;
 
-    @GetMapping("test")
+    @GetMapping("testConsumer")
     public String test() {
         return "你好, consumer";
     }
 
     @GetMapping("hello")
     public String hello() {
+        System.out.println("开始调用");
         return sayHelloRpc.sayHi("我的大佬");
     }
 }

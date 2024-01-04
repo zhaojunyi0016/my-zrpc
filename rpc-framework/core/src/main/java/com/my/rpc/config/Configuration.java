@@ -32,7 +32,7 @@ public class Configuration {
     public Map<SocketAddress, Breaker> everyIpBreaker = new ConcurrentHashMap<>();
 
     // 端口号
-    private int port = 8090;
+    private int port = 8088;
 
     // app name
     private String appName = "default";

@@ -15,7 +15,7 @@ public class CircuitBreaker implements Breaker {
 
     // 总的请求数
     private final AtomicInteger requestConut = new AtomicInteger(0);
-    // 异常的请求书
+    // 异常的请求数
     private final AtomicInteger errorRequestCount = new AtomicInteger(0);
     // 允许最大的异常比例
     private final int maxErrorRequest;

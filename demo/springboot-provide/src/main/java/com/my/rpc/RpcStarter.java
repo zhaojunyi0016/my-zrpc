@@ -14,7 +14,7 @@ public class RpcStarter implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.debug("provide RpcStarter启动...");
-
+        Thread.sleep(5000);
         /*
          * 1. 封装要发布的服务
          * 2. 定义注册中心

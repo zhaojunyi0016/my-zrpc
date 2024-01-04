@@ -15,7 +15,6 @@ import com.my.rpc.protection.retelimiter.ReteLimiter;
  * Date : 2023/12/14 18:15
  */
 public class TokenBuketRateLimiter implements ReteLimiter {
-
     // 令牌, 大于 0 就能放行,并且 -1,  等于 0 : 无令牌
     private static int tokens;
 
@@ -28,22 +27,11 @@ public class TokenBuketRateLimiter implements ReteLimiter {
     // 最后一次添加令牌时间
     private long lastAddTokenTime;
 
-
     public TokenBuketRateLimiter(int capacity, int rate) {
         this.rate = rate;
         this.capacity = capacity;
         lastAddTokenTime = System.currentTimeMillis();
         tokens = capacity;
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        TokenBuketRateLimiter tokenBuketRateLimiter = new TokenBuketRateLimiter(20, 20);
-
-        for (int i = 0; i < 1000; i++) {
-            Thread.sleep(10);
-            boolean b = tokenBuketRateLimiter.allowRequest();
-            System.out.println(b);
-        }
     }
 
     public synchronized boolean allowRequest() {
@@ -52,7 +40,7 @@ public class TokenBuketRateLimiter implements ReteLimiter {
         // 计算现在和上一次的添加令牌的时间间隔
         long gap = currentTime - lastAddTokenTime;
         // 间隔时间大于 1 秒, 放入新的令牌
-        if (gap >= 2000) {
+        if (gap >= 1000) {
             int needAddTokens = (int) (gap * rate / 1000);
             // 给令牌桶 添加令牌
             tokens = Math.min(capacity, tokens + needAddTokens);

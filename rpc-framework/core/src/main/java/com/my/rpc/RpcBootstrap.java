@@ -345,7 +345,7 @@ public class RpcBootstrap {
 
         // 开启这个服务的心跳检测
         System.out.println("开始心跳检测....");
-        HeartbeatDetector.detectorHeartbeat(reference.getInterfaceRef().getName());
+//        HeartbeatDetector.detectorHeartbeat(reference.getInterfaceRef().getName());
         return this;
     }
 

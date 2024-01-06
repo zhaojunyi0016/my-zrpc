@@ -24,7 +24,6 @@ public class TestController {
 
     @GetMapping("hello")
     public String hello() {
-        System.out.println("开始调用");
         return sayHelloRpc.sayHi("我的大佬");
     }
 }

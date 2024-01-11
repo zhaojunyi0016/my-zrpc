@@ -25,7 +25,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * 心跳检测器
  * 感知服务哪些是正常的, 哪些是不正常的
- * 不正常的下线-->
+ * 不正常的下线
  *
  * @Author : Williams
  * Date : 2023/12/11 17:49

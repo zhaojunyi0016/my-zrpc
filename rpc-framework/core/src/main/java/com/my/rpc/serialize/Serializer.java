@@ -12,7 +12,7 @@ public interface Serializer {
      * 序列化
      *
      * @param object 需要被序列化对象
-     * @return byte[] 比特数组
+     * @return byte[] 字节数组
      */
     byte[] serialize(Object object);
 

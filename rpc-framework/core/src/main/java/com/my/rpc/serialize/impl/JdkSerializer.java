@@ -21,7 +21,7 @@ public class JdkSerializer implements Serializer {
         if (object == null) {
             return null;
         }
-        // 对象 序列化 --> 二进制
+        // 对象 序列化 -> 二进制
         try (
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ObjectOutputStream oos = new ObjectOutputStream(baos);

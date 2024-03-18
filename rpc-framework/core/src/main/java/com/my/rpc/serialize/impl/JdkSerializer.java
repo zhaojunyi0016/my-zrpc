@@ -46,7 +46,7 @@ public class JdkSerializer implements Serializer {
                 ObjectInputStream ois = new ObjectInputStream(bis)
         ) {
             Object object = ois.readObject();
-            log.debug("对象完成了 JDK 反序列化...");
+            log.debug("对象完成了 JDK 反序列化....");
             return (T) object;
         } catch (IOException | ClassNotFoundException e) {
             log.error("使用 JDK 反序列化对象时, 出现异常 error ={}", e);

@@ -58,7 +58,7 @@ public class JdkSerializer implements Serializer {
     public static void main(String[] args) {
         Serializer serializer = new JdkSerializer();
         RequestPayload requestPayload = new RequestPayload();
-        requestPayload.setInterfaceName("xxx");
+        requestPayload.setInterfaceName("xxxx");
         requestPayload.setMethodName("xxx");
 
         // 加了这个不行 ,  不认 java.lang.String ,  想处理需要处理成字符串

@@ -8,7 +8,7 @@ public class HookDemo {
 
     public static void main(String[] args) throws InterruptedException {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("程序正在关闭....");
+            System.out.println("程序正在关闭...");
             try {
                 Thread.sleep(5000L);
             } catch (InterruptedException e) {

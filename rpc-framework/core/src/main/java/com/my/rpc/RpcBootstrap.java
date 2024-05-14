@@ -5,9 +5,9 @@ import com.my.rpc.channelHandler.handler.MethodCallHandler;
 import com.my.rpc.channelHandler.handler.RpcRequestDeEncoder;
 import com.my.rpc.channelHandler.handler.RpcResponseEncoder;
 import com.my.rpc.config.Configuration;
-import com.my.rpc.heartbeat.HeartbeatDetector;
 import com.my.rpc.discovery.Registry;
 import com.my.rpc.discovery.RegistryConfig;
+import com.my.rpc.heartbeat.HeartbeatDetector;
 import com.my.rpc.hook.RpcShutdownHook;
 import com.my.rpc.loadbalance.LoadBalancer;
 import io.netty.bootstrap.ServerBootstrap;
@@ -249,7 +249,7 @@ public class RpcBootstrap {
         // 1. 通过包名, 获取其下所有的类的全限定类名
         List<String> classNames = getAllClassNames(packageName);
 
-        // 2. 通过反射获取具体实现接口
+        // 2. 通过反射获取具体实现接口 , 过滤出只有 @RpcApi 注解的类
         List<Class<?>> classes = classNames.stream()
                 .map(className -> {
                     try {

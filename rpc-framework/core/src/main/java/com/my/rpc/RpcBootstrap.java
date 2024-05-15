@@ -277,7 +277,7 @@ public class RpcBootstrap {
                 serviceConfig.setRef(instance);
                 // 3. 发布服务
                 publish(serviceConfig);
-                log.debug("通过包扫描, 发布服务[{}]成功...", anInterface.getName());
+                log.debug("通过包扫描, 发布服务[{}]成功.....", anInterface.getName());
             }
         }
         return this;

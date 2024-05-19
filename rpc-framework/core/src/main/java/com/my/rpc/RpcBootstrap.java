@@ -290,7 +290,7 @@ public class RpcBootstrap {
         URL url = ClassLoader.getSystemClassLoader()
                 .getResource(basePath);
         if (url == null) {
-            log.error("Resource not found.");
+            log.error("Resource not found...");
             throw new RuntimeException("Resource not found.......");
         }
         String absolutePath = url.getPath();

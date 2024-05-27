@@ -140,7 +140,7 @@ public class RpcBootstrap {
      * 配置序列化方式
      */
     public RpcBootstrap serialize() {
-        log.debug("配置了默认的序列化方式..");
+        log.debug("配置了默认的序列化方式");
         return this;
     }
 

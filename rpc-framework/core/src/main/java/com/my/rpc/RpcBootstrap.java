@@ -190,7 +190,7 @@ public class RpcBootstrap {
                     });
             // 绑定端口
             ChannelFuture channelFuture = serverBootstrap.bind(configuration.getPort()).sync();
-            log.debug("项目启动完成...");
+            log.debug("项目启动完成....");
             System.out.println("项目启动完成");
             // 接受客户端发送的消息
             channelFuture.channel().closeFuture().sync();

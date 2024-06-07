@@ -203,7 +203,7 @@ public class RpcBootstrap {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            log.warn("项目关闭...");
+            log.warn("项目关闭....");
         }
         return this;
     }

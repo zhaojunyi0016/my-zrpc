@@ -76,7 +76,6 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) {
         // 获取当前配置的负载均衡器
         InetSocketAddress address = RpcBootstrap.getInstance().getConfiguration().getLoadBalancer().selectAddress(interfaceRef.getName());
-
         // 获取断路器
         Breaker breaker = RpcBootstrap.getInstance().getConfiguration().everyIpBreaker.get(address);
         if (breaker == null) {

@@ -83,7 +83,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
             RpcBootstrap.getInstance().getConfiguration().everyIpBreaker.put(address, breaker);
         }
         if (breaker.isBreak()) {
-            log.debug("熔断器打开,不继续发起 RPC 调用 ..");
+            log.debug("熔断器打开,不继续发起 RPC 调用 ....");
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {

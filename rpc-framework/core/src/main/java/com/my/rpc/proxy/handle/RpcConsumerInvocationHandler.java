@@ -215,10 +215,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
     public static void main(String[] args) {
 
-        long batchSize = (20159648 / 10000) + 1;
-        for (int i = 0; i <= batchSize; i++) {
-            System.out.println(i * 1000);
-        }
+
     }
 
 }

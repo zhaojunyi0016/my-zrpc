@@ -19,7 +19,7 @@ public class ConsumerNettyBootstrapInitializer {
     private static Bootstrap bootstrap = new Bootstrap();
 
     static {
-        // 定义线程池 eventLoopGroup
+        // 定义线程池 eventLoopGroup ..
         NioEventLoopGroup group = new NioEventLoopGroup();
         bootstrap = bootstrap.group(group)
                 // 选择怎么样的的 channel
